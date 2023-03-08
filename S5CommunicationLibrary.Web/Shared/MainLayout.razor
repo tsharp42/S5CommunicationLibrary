@@ -1,0 +1,49 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>TrantecCommunicator.Web</PageTitle>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">S5 Control</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <NavLink class="nav-link" href="list">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Receivers
+                </NavLink>
+                <NavLink class="nav-link" href="tools">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Tools
+                </NavLink>
+                <NavLink class="nav-link" href="log">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> log
+                </NavLink>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="page">
+    <!--
+    <div class="sidebar">
+            <NavMenu />
+    </div>
+
+    -->
+
+
+
+    <main>
+        <!--
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+        -->
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>

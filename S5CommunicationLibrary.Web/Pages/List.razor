@@ -1,0 +1,121 @@
+﻿@page "/list"
+
+<PageTitle>Receiver List</PageTitle>
+
+@using S5CommunicationLibrary.Web.Data
+
+@inject TrantecReceiverService ReceiverService
+
+
+
+<table class="table">
+<thead>
+    <tr>
+        <th>Name</th>
+        <th>Frequency</th>
+        <th>RF</th>
+
+        <th>Audio Level</th>
+        <th>Battery Level</th>
+        <th>Muted</th>
+    </tr>
+</thead>
+<tbody>
+        @if (Receivers != null)
+        {
+            @foreach (var rx in Receivers)
+            {
+                <tr>
+                    <td style="vertical-align: middle">@rx.Name</td>
+                    <td style="vertical-align: middle">@rx.Frequency.ToString("000.000MHz")</td>
+                    <td style="width: 30%">
+                        <div class="progress 
+                            @((rx.CurrentAntenna == S5.Receiver.Antenna.A)? "active-antenna" : "inactive-antenna")                       
+                            ">
+                            <div class="progress-bar 
+                                @((rx.CurrentAntenna == S5.Receiver.Antenna.A)? "progress-bar-striped" : "")
+                                @((rx.RFA < 0.4f)? "bg-danger" : "")
+                                @((rx.RFA >= 0.4f && rx.RFA < 0.7f)? "bg-warning" : "")
+                                @((rx.RFA >= 0.7f)? "bg-success" : "")
+                            " role="progressbar" style="width: @(rx.RFA.ToString("P"))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">A</div>
+                        </div>
+                        <div style="margin-top: 5px;" class="progress 
+                            @((rx.CurrentAntenna == S5.Receiver.Antenna.B)? "active-antenna" : "inactive-antenna")
+                        ">
+                            <div class="progress-bar 
+                                @((rx.CurrentAntenna == S5.Receiver.Antenna.B)? "progress-bar-striped" : "")
+                                @((rx.RFB < 0.4f)? "bg-danger" : "")
+                                @((rx.RFB >= 0.4f && rx.RFB < 0.7f)? "bg-warning" : "")
+                                @((rx.RFB >= 0.7f)? "bg-success" : "")
+                            " role="progressbar" style="width: @(rx.RFB.ToString("P"))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">B</div>
+                        </div>
+                    </td>
+
+                    <td style="vertical-align: middle">
+                        <div style="border: 1px solid black; height:32px" class="progress">
+                            <div class="progress-bar
+                                @((rx.AudioLevel > 0.8f)? "bg-danger" : "")
+                                @((rx.AudioLevel > 0.6f && rx.AudioLevel <= 0.8f)? "bg-warning" : "")
+                                @((rx.AudioLevel <= 0.6f)? "bg-success" : "")
+                            " role="progressbar" style="width: @(rx.AudioLevel.ToString("P"))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle; width: 15%;">
+                        @if (!rx.IsMuted)
+                        {
+                            <div style="border: 1px solid black; height:32px" class="progress">
+                                <div class="progress-bar
+                                @((rx.BatteryLevel < 0.4f)? "bg-danger" : "")
+                                @((rx.BatteryLevel >= 0.4f && rx.BatteryLevel < 0.6f)? "bg-warning" : "")
+                                @((rx.BatteryLevel >= 0.6f)? "bg-success" : "")
+                            " role="progressbar" style="width: @(rx.BatteryLevel.ToString("P"))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                    @(
+                               rx.BatteryLevel.ToString("P")
+                               )
+                                </div>
+                            </div>
+                        }
+                    </td>
+                    <td style="vertical-align: middle; width: 10%; text-align:center">
+                        @if(rx.IsMuted)
+                        {
+                            <h5><span class="badge bg-danger">MUTED</span></h5>
+                        }
+                        
+                    </td>
+                </tr>
+            }
+
+        }
+    </tbody>
+</table>
+
+
+
+@code {
+    List<S5.Receiver>? Receivers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Receivers = ReceiverService.GetReceivers();
+
+    }
+
+
+
+    // Timer to refresh data on this page every second
+    System.Threading.Timer? timer;
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(async _ =>  // async void
+        {
+
+            InvokeAsync(() => StateHasChanged());
+
+        }, null, 0, 100);
+    }
+
+
+
+}

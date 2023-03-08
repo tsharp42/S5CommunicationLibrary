@@ -1,0 +1,46 @@
+﻿@page "/log"
+
+<PageTitle>Debug Log</PageTitle>
+
+@using S5CommunicationLibrary.Web.Data
+
+@inject TrantecReceiverService ReceiverService
+
+
+@if (ReceiverService.Log != null)
+{
+    <pre>
+    @foreach (var line in ReceiverService.Log)
+    {
+        @line @Environment.NewLine
+
+    }
+    </pre>
+}
+
+
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+
+
+    // Timer to refresh data on this page every second
+    System.Threading.Timer? timer;
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(async _ =>  // async void
+        {
+
+            InvokeAsync(() => StateHasChanged());
+
+        }, null, 0, 100);
+    }
+
+
+
+}

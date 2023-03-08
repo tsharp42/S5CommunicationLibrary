@@ -1,0 +1,68 @@
+﻿@page "/tools"
+
+<PageTitle>Tools</PageTitle>
+
+@using S5CommunicationLibrary.Web.Data
+
+@inject TrantecReceiverService ReceiverService
+
+
+<div class="row">
+    <div class="col">
+        <!-- Available ports -->
+        <div class="card">
+            <div class="card-header">
+                Available Ports
+            </div>
+            <div class="card-body">
+                <ul>
+                    @foreach(var port in ReceiverService.GetAvailablePorts())
+                    {
+                        <li><pre>@port</pre></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <!-- Configured ports -->
+        <div class="card">
+            <div class="card-header">
+                Configured Ports
+            </div>
+            <div class="card-body">
+                <ul>
+                    @foreach (var port in ReceiverService.ConfiguredReceivers)
+                    {
+                        <li><pre>@port</pre></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+
+
+    // Timer to refresh data on this page every second
+    System.Threading.Timer? timer;
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(async _ =>  // async void
+        {
+
+            InvokeAsync(() => StateHasChanged());
+
+        }, null, 0, 100);
+    }
+
+
+
+}
