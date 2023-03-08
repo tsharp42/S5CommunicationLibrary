@@ -1,6 +1,6 @@
 A C# Library for control of Trantec S5.3 and S5.5 Receivers over USB
 
-## Note
+## Drivers
 The drivers supplied for the receivers do not provide a Serial Port device, you will need to force load the FTDI drivers or find some other workaround to have the receiver enumerate as a standard serial device.
 
 ### [Windows] Modify the receiver
