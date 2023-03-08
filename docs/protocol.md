@@ -65,7 +65,7 @@ Send
 Receive
 ```
 Full Message:
-[2| Header][1| Count][10| Preset Data * Count]
+[2| Header][1| Count][10| Preset Data * 40][1| Checksum]
 
 Header & Count:
  44 00 15 
@@ -74,6 +74,32 @@ Header & Count:
 Preset Data:
  55 73 65 72 31 37 52 32 4b 01 
 | Name            |  FREQ  | ML
+
+Checksum:
+1 Byte - Modulo 256 of all preceeding bytes
+
+Name: 6 Byte ASCII string
+FREQ: Current receiver frequency packed as integers?
+    0x52 0x32 0x4B = 82,50,75 = 825.075
+ML: Mute Level, 0x01 To 0x0a (1->10)
+```
+
+## Send User Presets
+Send
+```
+Full Message:
+[4| Header][1| Count][10| Preset Data * Count]
+
+Header & Count
+ 52 53 01 55 15 ...
+|           | Count (15 = 21, 21*10 Byte entries following)
+
+Preset Data:
+ 55 73 65 72 31 37 52 32 4b 01 
+| Name            |  FREQ  | ML
+
+Checksum:
+1 Byte - Modulo 256 of all preceeding bytes
 
 Name: 6 Byte ASCII string
 FREQ: Current receiver frequency packed as integers?
