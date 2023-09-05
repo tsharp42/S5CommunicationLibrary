@@ -504,7 +504,11 @@ namespace S5CommunicationLibrary.S5
 
         public void SendPresets()
         {
+#if RELEASE
+            Log("SendPresets() is disabled");
+#else
             QueueCommand(Commands.SendPresets);
+#endif
         }
 
         public void Stop()
