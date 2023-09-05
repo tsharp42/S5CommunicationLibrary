@@ -32,13 +32,31 @@ namespace S5CommunicationLibrary.Web.Data
                 
             }
             */
-            System.IO.StreamReader _stream = new StreamReader("receivers.txt");
-            List<string> rxlines = new List<string>();
-            while(!_stream.EndOfStream)
+
+            // Does the receivers file exist?
+
+            if (System.IO.File.Exists("receivers.txt"))
             {
-                rxlines.Add(_stream.ReadLine());
+                // Get all available ports to compare against
+                string[] available = GetAvailablePorts();
+
+                System.IO.StreamReader _stream = new StreamReader("receivers.txt");
+                List<string> rxlines = new List<string>();
+                while (!_stream.EndOfStream)
+                {
+                    string portName = _stream.ReadLine();
+
+                    if(available.Contains(portName))
+                        rxlines.Add(portName);
+
+                }
+                ConfiguredReceivers = rxlines.ToArray();
             }
-            ConfiguredReceivers = rxlines.ToArray();
+            else
+            {
+                ConfiguredReceivers = GetAvailablePorts();
+            }
+            
 
             Start();
         }
