@@ -23,7 +23,7 @@ ACTION=="add", ATTRS{idVendor}=="0304", ATTRS{idProduct}=="c719", RUN+="/sbin/mo
 
 Reboot, at this point the receivers should be enumerated as serial devices as /dev/ttyUSB{0}
 
-You can validate this with some simple commands
+You can validate this with some simple commands, first disconnect the USB cable and re-connect it, then run:
 ```sh
 sudo dmesg | grep -A7 Trantec
 ```
