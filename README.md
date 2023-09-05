@@ -8,6 +8,8 @@ Use the FTDI configuration tool (FT_PROG) to reconfigure the USB VID and PID to 
 This will break compatibility with the manufacturer software.
 This has the potential to completely brick the USB functionality if done incorrectly
 
+FT_PROG - https://ftdichip.com/utilities/
+
 ### [Windows] Modify the driver
 Modify the FTDI drivers with the VID/PID combination of 0304/C719. You will probably also need to disable driver signing among other things.
 
