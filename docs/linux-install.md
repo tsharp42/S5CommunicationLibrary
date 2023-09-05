@@ -9,7 +9,7 @@ Load the ftdi-sio driver on boot:
 ```sh
 sudo nano /etc/modules-load.d/ftdi.conf
 ```
-Enter `ftdi-sio` and save.
+Enter `ftdi-sio` and save (Ctrl+O, Ctrl+X)
 
 Configure the driver on boot to use the Trantec VID/PID combination:
 ```sh
@@ -29,14 +29,14 @@ sudo dmesg | grep -A7 Trantec
 ```
 
 Which should return some lines like this, note "now attached to ttyUSB0"
-'''
+```
 [ 1106.624503] usb 3-1: Product: Trantec Systems receiver
 [ 1106.624509] usb 3-1: Manufacturer: BBM
 [ 1106.624513] usb 3-1: SerialNumber: 39FQFZ2P
 [ 1106.629843] ftdi_sio 3-1:1.0: FTDI USB Serial Device converter detected
 [ 1106.629896] usb 3-1: Detected FT232R
 [ 1106.630768] usb 3-1: FTDI USB Serial Device converter now attached to ttyUSB0
-'''
+```
 
 You can also confirm they exist by checking the device entries:
 ```sh
@@ -131,4 +131,4 @@ And finally
 sudo systemctl start trantec.service
 ```
 
-At this point, the applicaiton should start on boot and automatically connect to the specified receivers in receivers.txt
+At this point, the application should start on boot and automatically connect to the specified receivers in receivers.txt
