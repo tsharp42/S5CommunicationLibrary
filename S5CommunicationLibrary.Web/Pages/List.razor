@@ -11,8 +11,8 @@
 <table class="table">
 <thead>
     <tr>
-        <th>Name</th>
-        <th>Frequency</th>
+        <th class="sorter" @onclick="() => {CurrentSortBy = SortBy.Name; SortByDescending = !SortByDescending;}">Name</th>
+        <th class="sorter" @onclick="() => {CurrentSortBy = SortBy.Frequency; SortByDescending = !SortByDescending;}">Frequency</th>
         <th>RF</th>
 
         <th>Audio Level</th>
@@ -23,7 +23,7 @@
 <tbody>
         @if (Receivers != null)
         {
-            @foreach (var rx in Receivers)
+            @foreach (var rx in GetSortedReceiverList())
             {
                 <tr>
                     <td style="vertical-align: middle">@rx.Name</td>
@@ -96,10 +96,44 @@
 @code {
     List<S5.Receiver>? Receivers;
 
+    protected enum SortBy{
+        Name,
+        Frequency
+    }
+    protected SortBy CurrentSortBy = SortBy.Frequency;
+    protected bool SortByDescending = false;
+
     protected override async Task OnInitializedAsync()
     {
         Receivers = ReceiverService.GetReceivers();
 
+    }
+
+    protected List<S5.Receiver> GetSortedReceiverList()
+    {
+        if(Receivers == null)
+            return null;
+        
+        if(SortByDescending)
+        {
+            switch(CurrentSortBy)
+            {
+                case SortBy.Name:
+                    return Receivers.OrderByDescending(r => r.Name).ToList();
+                case SortBy.Frequency:
+                    return Receivers.OrderByDescending(r => r.Frequency).ToList();
+            }
+        }else{
+            switch(CurrentSortBy)
+            {
+                case SortBy.Name:
+                    return Receivers.OrderBy(r => r.Name).ToList();
+                case SortBy.Frequency:
+                    return Receivers.OrderBy(r => r.Frequency).ToList();
+            }
+        }
+
+        return Receivers;
     }
 
 

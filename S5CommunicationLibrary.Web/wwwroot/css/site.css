@@ -71,3 +71,12 @@ a, .btn-link {
 .inactive-antenna {
     border: 2px solid red;
 }
+
+.sorter {
+    cursor: pointer;
+}
+  
+.sorter:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
