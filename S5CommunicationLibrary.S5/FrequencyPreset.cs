@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace S5CommunicationLibrary.S5
 {
-    internal class FrequencyPreset
+    public class FrequencyPreset
     {
         public string Name { 
             get { return _name; }

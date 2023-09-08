@@ -21,6 +21,7 @@ namespace S5CommunicationLibrary.S5
 
         private Queue<Commands> queuedCommands;
 
+        public List<FrequencyPreset> Presets { get { return frequencyPresets; } }
         private List<FrequencyPreset> frequencyPresets;
 
         public string Name { get { return _name; } }
@@ -520,6 +521,15 @@ namespace S5CommunicationLibrary.S5
             Log("SendPresets() is disabled");
 #else
             QueueCommand(Commands.SendPresets);
+#endif
+        }
+
+        public void RequestPresets()
+        {
+#if RELEASE
+            Log("RequestPresets() is disabled");
+#else
+            QueueCommand(Commands.RequestPresets);
 #endif
         }
 
