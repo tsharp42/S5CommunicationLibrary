@@ -23,5 +23,7 @@ echo 0304 c719 > /sys/bus/usb-serial/drivers/ftdi_sio/new_id
 ---
 
 ## Disclaimer
-**Please note:** This is a third party implentation of the protocol entirely derived from watching protocol data fly across the serial bus. It is in no way connected to, or endorsed by, Trantec or any related parties. Use of the information and software contained within this repository is entirely at your own risk.
+**Please note:** This is a third party implementation of the protocol entirely derived from watching protocol data fly across the serial bus. It is in no way connected to, or endorsed by, Trantec or any related parties. Use of the information and software contained within this repository is entirely at your own risk.
+
+There is a very real risk that some commands may do things to the receiver that can't easily be reversed, some commands write to the EEPROM and it appears as though there's very little error checking on the receiver side. You have been warned.
 
