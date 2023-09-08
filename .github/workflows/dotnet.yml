@@ -1,13 +1,11 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: .NET Publish
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -23,4 +21,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      shell: bash
+      run: | 
+        release_name="S5CommunicationLibrary.Web-$tag"
+        dotnet publish S5CommunicationLibrary.Web/S5CommunicationLibrary.Web.csproj -c Release -o "$release_name"
+        tar czvf "${release_name}.tar.gz" "$release_name"
+        rm -r "$release_name"
+    - name: Publish
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "S5CommunicationLibrary.Web*"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
