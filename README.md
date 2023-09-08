@@ -5,6 +5,8 @@ The drivers supplied for the receivers do not provide a Serial Port device, you 
 
 I recommend sticking with Linux as this does not require any modification to the receiver or drivers.
 
+
+## Windows
 ### [Windows] Modify the receiver
 Use the FTDI configuration tool (FT_PROG) to reconfigure the USB VID and PID to the defaults (0403/6001) so the standard FTDI driver works.
 This will break compatibility with the manufacturer software.
@@ -15,6 +17,7 @@ FT_PROG - https://ftdichip.com/utilities/
 ### [Windows] Modify the driver
 Modify the FTDI drivers with the VID/PID combination of 0304/C719. You will probably also need to disable driver signing among other things.
 
+## Linux
 ### [Linux] Force driver load (Once) - Tested with Ubuntu 22.04 LTS
 Force load the ftdi-sio driver for the VID/PID combination of 0304/C719. This will revert after a reboot
 ```sh
