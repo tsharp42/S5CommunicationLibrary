@@ -1,0 +1,130 @@
+﻿@page "/presets"
+
+<PageTitle>Presets</PageTitle>
+
+@using S5CommunicationLibrary.Web.Data
+
+@inject TrantecReceiverService ReceiverService
+
+
+
+<div class="row">
+    <div class="col-xs-12 mb-3">
+        <div class="card">
+             <div class="card-header">
+                Select Receiver
+            </div>
+            <div class="card-body">
+                @if (Receivers != null)
+                {
+                    <select @onchange="(e) => {SetSelectedReceiverFromPortName(e.Value.ToString());}">
+                    @foreach (var rx in Receivers)
+                    {
+                        <option value="@rx.PortName">[@rx.Name] - @rx.Frequency</option>
+                    }
+                    </select>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (SelectedReceiver != null)
+{
+    <div class="row">
+        <div class="col-3">
+            <div class="card">
+                <div class="card-header">
+                    Current Configuration
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Name</th>
+                            <td>@SelectedReceiver.Name</td>
+                        </tr>
+                        <tr>
+                            <th>Frequency</th>
+                            <td>@SelectedReceiver.Frequency</td>
+                        </tr>
+                        <tr>
+                            <th>Port</th>
+                            <td>@SelectedReceiver.PortName</td>
+                        </tr>
+                    </table>
+                    <button class="btn btn-sm btn-block btn-primary" @onclick="LoadPresets">Load</button>
+                    <button class="btn btn-sm btn-block btn-warning">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-7">
+            <div class="card">
+                <div class="card-header">
+                    Presets
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Name</th>
+                            <th>Mute Level</th>
+                            <th>Frequency</th>
+                        </tr>
+                        @foreach (var fp in SelectedReceiver.Presets)
+                        {
+                            <tr>
+                                <td>@fp.Name</td>
+                                <td>@fp.MuteLevel</td>
+                                <td>@fp.Frequency</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    List<S5.Receiver>? Receivers;
+
+    S5.Receiver? SelectedReceiver;
+
+    protected void SetSelectedReceiverFromPortName(string portName)
+    {
+        if(Receivers != null)
+        {
+            SelectedReceiver = Receivers.FirstOrDefault(r => r.PortName == portName);
+        }
+    }
+
+    protected void LoadPresets()
+    {
+        if(SelectedReceiver != null)
+            SelectedReceiver.RequestPresets();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Receivers = ReceiverService.GetReceivers();
+
+        if(Receivers != null)
+            SelectedReceiver = Receivers[0];
+
+    }
+
+    System.Threading.Timer? timer;
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(async _ =>  // async void
+        {
+
+            InvokeAsync(() => StateHasChanged());
+
+        }, null, 0, 100);
+    }
+
+
+
+}

@@ -90,10 +90,10 @@ namespace S5CommunicationLibrary.Web.Data
 
         private void Rx_LogWritten(S5.Receiver sender, string logLine)
         {
-            if (_log.Count > 200)
-                _log.RemoveAt(0);
-
             _log.Add("[" + sender.Name + "] " + logLine);
+
+            if (_log.Count > 200)
+                _log.RemoveAt(0); 
         }
 
         public void Stop()
