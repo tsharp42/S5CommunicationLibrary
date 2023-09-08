@@ -3,6 +3,7 @@ using System.Reflection.PortableExecutable;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace S5CommunicationLibrary.S5
 {
@@ -68,8 +69,13 @@ namespace S5CommunicationLibrary.S5
 
         public static string[] GetReceivers()
         {
-            return SerialPort.GetPortNames();
-
+            // On linux only return ttyUSB devices
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return SerialPort.GetPortNames().ToList().FindAll(p => p.Contains("ttyUSB")).ToArray();
+            }else{
+                return SerialPort.GetPortNames();
+            }
         }
 
         /// <summary>
@@ -102,7 +108,13 @@ namespace S5CommunicationLibrary.S5
 
             // Receive any serial data
             byte[] buf = new byte[serialPort.BytesToRead];
-            serialPort.Read(buf, 0, serialPort.BytesToRead);
+
+            try{
+                serialPort.Read(buf, 0, serialPort.BytesToRead);
+            }catch(Exception ex){
+                Log("Exception reading the serial port: " + ex.Message);
+            }
+            
 
             // Continually add it to the buffer
             currentBuffer.AddRange(buf);
