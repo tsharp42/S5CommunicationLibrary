@@ -526,11 +526,7 @@ namespace S5CommunicationLibrary.S5
 
         public void RequestPresets()
         {
-#if RELEASE
-            Log("RequestPresets() is disabled");
-#else
             QueueCommand(Commands.RequestPresets);
-#endif
         }
 
         public void Stop()
