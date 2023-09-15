@@ -106,3 +106,12 @@ FREQ: Current receiver frequency packed as integers?
     0x52 0x32 0x4B = 82,50,75 = 825.075
 ML: Mute Level, 0x01 To 0x0a (1->10)
 ```
+
+## Set Mute Level (?)
+Send
+```
+ 52 00 6d 00 00 00 06 00 00 00 00 00 00
+| Header |   ?    |ML|        ?        |
+
+ML: Mute Level, 0x01 To 0x0a (1->10)
+```
