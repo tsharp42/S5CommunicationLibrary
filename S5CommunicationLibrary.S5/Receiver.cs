@@ -56,6 +56,9 @@ namespace S5CommunicationLibrary.S5
         public int MuteLevel { get { return _muteLevel; } }
         private int _muteLevel = 0;
 
+        public Dictionary<string, string> DebugData { get { return _debugData; } }
+        private Dictionary<string, string> _debugData;
+
 
         // Command Processing State
         private State currentState;
@@ -67,7 +70,7 @@ namespace S5CommunicationLibrary.S5
         private DateTime LastFullDataRequest;
 
         // Events
-        public delegate void LogEventHandler(Receiver sender, string logLine);
+        public delegate void LogEventHandler(Receiver sender, string logLine, LogLevel logLevel);
         public event LogEventHandler LogWritten;
         public event EventHandler MetersUpdated;
 
@@ -88,6 +91,7 @@ namespace S5CommunicationLibrary.S5
         /// <param name="portName">Serial port to start communication</param>
         public Receiver(string portName)
         {
+            _debugData = new Dictionary<string, string>();
 
             serialPort = new SerialPort(portName, 57600);
             _portName = portName;
@@ -116,7 +120,7 @@ namespace S5CommunicationLibrary.S5
             try{
                 serialPort.Read(buf, 0, serialPort.BytesToRead);
             }catch(Exception ex){
-                Log("Exception reading the serial port: " + ex.Message);
+                Log("Exception reading the serial port: " + ex.Message, LogLevel.Error);
             }
             
 
@@ -141,7 +145,7 @@ namespace S5CommunicationLibrary.S5
                             // Wait for 0x44, 0x00, LEN
                             if (currentBuffer[0] == 0x44)
                             {
-                                Log("Found header for: " + currentCommand);
+                                Log("Found header for: " + currentCommand, LogLevel.Debug);
                                 currentState = State.AwaitingData;
                             }
                         }
@@ -152,7 +156,7 @@ namespace S5CommunicationLibrary.S5
                             // Wait for 0x52, 0x00, 0x44
                             if (currentBuffer[0] == 0x52 && currentBuffer[1] == 0x00 && currentBuffer[2] == 0x44)
                             {
-                                Log("Found header for: " + currentCommand);
+                                Log("Found header for: " + currentCommand, LogLevel.Debug);
                                 currentState = State.AwaitingData;
                             }
                         }
@@ -163,7 +167,7 @@ namespace S5CommunicationLibrary.S5
                             // Wait for 0x52, 0x00, 0x3F
                             if (currentBuffer[0] == 0x52 && currentBuffer[1] == 0x00 && currentBuffer[2] == 0x21)
                             {
-                                Log("Found header for: " + currentCommand);
+                                Log("Found header for: " + currentCommand, LogLevel.Debug);
                                 currentState = State.AwaitingData;
                             }
                         }
@@ -183,7 +187,7 @@ namespace S5CommunicationLibrary.S5
                         int totalLen = 404; // The RX always sends a full set of presets, 404 bytes in total.
                         if (currentBuffer.Count >= totalLen)
                         {
-                            Log("Got data, processing");
+                            Log("Got data, processing", LogLevel.Debug);
                             currentState = State.Processing;
                             ProcessMessage_PresetData();    
                         }
@@ -193,7 +197,7 @@ namespace S5CommunicationLibrary.S5
                         // Meter data message is always 14 long
                         if (currentBuffer.Count >= 14)
                         {
-                            Log("Got data, processing");
+                            Log("Got data, processing", LogLevel.Debug);
                             currentState = State.Processing;
                             ProcessMessage_Metering();
                         }
@@ -203,7 +207,7 @@ namespace S5CommunicationLibrary.S5
                         // Meter data message is always 14 long
                         if (currentBuffer.Count >= 19)
                         {
-                            Log("Got data, processing");
+                            Log("Got data, processing", LogLevel.Debug);
                             currentState = State.Processing;
                             ProcessMessage_Full();
                         }
@@ -215,6 +219,7 @@ namespace S5CommunicationLibrary.S5
 
         private void ProcessMessage_Full()
         {
+            _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
 
             _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
 
@@ -228,15 +233,15 @@ namespace S5CommunicationLibrary.S5
             result = result.Substring(0, 3) + "." + result.Substring(3, 3);
             _frequency = decimal.Parse(result);
 
-            Log("Full Message: " + ByteArrayToString(currentBuffer.ToArray()));
+            Log("Full Message: " + ByteArrayToString(currentBuffer.ToArray()), LogLevel.Debug);
 
             ResetState();
         }
 
         private void SendMessage_SendPresets()
         {
-            Log("Preparing to send presets");
-            Log("Total Presets: " + frequencyPresets.Count);
+            Log("Preparing to send presets", LogLevel.Info);
+            Log("Total Presets: " + frequencyPresets.Count, LogLevel.Info);
 
             List<byte> data = new List<byte>();
 
@@ -283,6 +288,9 @@ namespace S5CommunicationLibrary.S5
             byte[] outData = data.ToArray();
             serialPort.Write(outData, 0, outData.Length);
 
+            // Log the data sent
+            _debugData["SendMessage_SendPresets"] = ByteArrayToString(outData);
+
             // Return to no handshake, doesn't appear to be required elsewhere
             serialPort.Handshake = Handshake.None;
 
@@ -291,6 +299,9 @@ namespace S5CommunicationLibrary.S5
 
         private void ProcessMessage_Metering()
         {
+            _debugData["ProcessMessage_Metering"] = ByteArrayToString(currentBuffer.ToArray());
+
+
             // 52 00 44   a8     9d    77 0d   85    c0       53 04 00 13 57
             //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS | ??????????????
 
@@ -301,15 +312,15 @@ namespace S5CommunicationLibrary.S5
             byte RFBdata = currentBuffer[4];
 
             // TODO: Unsure on the value mapping here
-            Log("A Data: " + (RFAdata - 60));
-            Log("B Data: " + (RFBdata - 60));
+            Log("A Data: " + (RFAdata - 60), LogLevel.Debug);
+            Log("B Data: " + (RFBdata - 60), LogLevel.Debug);
             _rfA = (float)(RFAdata - 60) / 90.0f;
             _rfB = (float)(RFBdata - 60) / 90.0f;
 
             // AUDIO
             // ---------
             Int16 vu = BitConverter.ToInt16(currentBuffer.ToArray(), 5);
-            Log("VU: " + (vu - 3000));
+            Log("VU: " + (vu - 3000), LogLevel.Debug);
             _audioLevel = (float)(vu - 3000) / (float)(Int16.MaxValue - 6000);
 
             // BATT
@@ -317,7 +328,7 @@ namespace S5CommunicationLibrary.S5
             // 20 -> 80?
             // TODO: Unsure on the value mapping here
             byte BatteryData = currentBuffer[7];
-            Log("Battery Data: " + (BatteryData - 51));
+            Log("Battery Data: " + (BatteryData - 51), LogLevel.Debug);
             _batteryLevel = (float)(BatteryData - 51) / 152.0f;
 
             // FLAGS
@@ -341,6 +352,9 @@ namespace S5CommunicationLibrary.S5
 
         private void ProcessMessage_PresetData()
         {
+            Log("Processing Preset Data", LogLevel.Info);
+            _debugData["ProcessMessage_PresetData"] = ByteArrayToString(currentBuffer.ToArray());
+
             bool isValid = true;
 
             // Header - Bytes 1 & 2
@@ -369,29 +383,29 @@ namespace S5CommunicationLibrary.S5
             {
                 chk += currentBuffer[i];
             }
-            Log("Checksum byte: " + string.Format("{0:x2}", message_chk));
-            Log("Checksum calculated: " + string.Format("{0:x2}", chk));
+            Log("Checksum byte: " + string.Format("{0:x2}", message_chk), LogLevel.Info);
+            Log("Checksum calculated: " + string.Format("{0:x2}", chk), LogLevel.Info);
 
             if(chk != message_chk)
             {
-                Log("Checksum does not match, expected: " + string.Format("{0:x2}", message_chk));
+                Log("Checksum does not match, expected: " + string.Format("{0:x2}", message_chk), LogLevel.Error);
                 isValid = false;
             }
             else
             {
-                Log("Checksum matched");
+                Log("Checksum matched", LogLevel.Info);
             }
 
             // Did all checks pass?
             if(!isValid)
             {
-                Log("Processing failed: " + currentCommand);
+                Log("Processing failed: " + currentCommand, LogLevel.Error);
                 Console.WriteLine(ByteArrayToString(currentBuffer.ToArray()));
                 ResetState();
                 return;
             }
 
-            Log("Data valid!");
+            Log("Data valid!", LogLevel.Info);
 
             
             // -------
@@ -436,7 +450,7 @@ namespace S5CommunicationLibrary.S5
                 result = result.Substring(0, 3) + "." + result.Substring(3, 3);
                 preset.Frequency = decimal.Parse(result);
 
-                Log("Preset: " + preset.Name + " / " + preset.Frequency + " / " + preset.MuteLevel);
+                Log("Preset: " + preset.Name + " / " + preset.Frequency + " / " + preset.MuteLevel, LogLevel.Info);
 
                 frequencyPresets.Add(preset);
             }
@@ -447,7 +461,7 @@ namespace S5CommunicationLibrary.S5
 
         private void ResetState()
         {
-            Log("Resetting state...");
+            Log("Resetting state...", LogLevel.Debug);
             currentState = State.Idle;
             currentBuffer.Clear();
         }
@@ -456,6 +470,7 @@ namespace S5CommunicationLibrary.S5
         {
             if(_currentStatus == Status.Disconnected)
             {
+                Log("Start() - " + _portName, LogLevel.Info);
                 _currentStatus = Status.Connecting;
 
                 serialPort.Open();
@@ -474,11 +489,11 @@ namespace S5CommunicationLibrary.S5
                     ResetState();
                     _currentStatus = Status.Disconnected;
 
-                    Log("The serial port was not opened as expected");
+                    Log("The serial port was not opened as expected", LogLevel.Error);
                 }
                 
             }else{
-                Log("Can't Start(), Receiver is either already connected or is connecting");
+                Log("Can't Start(), Receiver is either already connected or is connecting", LogLevel.Info);
             }
         }
 
@@ -492,9 +507,9 @@ namespace S5CommunicationLibrary.S5
                 // If we are idle and there's a command to process, do it
                 if (queuedCommands.Count > 0 && currentState == State.Idle) 
                 {
-                    Log("Queue Count: " + queuedCommands.Count);
+                    Log("Queue Count: " + queuedCommands.Count, LogLevel.Debug);
                     Commands cmd = queuedCommands.Dequeue();
-                    Log("Next Command: " + cmd);
+                    Log("Next Command: " + cmd, LogLevel.Debug);
                     sendCommand(cmd);
                 }
                 
@@ -528,20 +543,20 @@ namespace S5CommunicationLibrary.S5
 
                 // Timeout commands that take longer than 1 second
                 if(DateTime.UtcNow - CommandStartedTime > TimeSpan.FromSeconds(1) && currentState != State.Idle){
-                    Log("Timeout Occured!");
+                    Log("Timeout Occured!", LogLevel.Debug);
                     ResetState();
                 }
 
                 
 
-                Thread.Sleep(50);
+                Thread.Sleep(250);
             }
         }
 
         public void SendPresets()
         {
 #if RELEASE
-            Log("SendPresets() is disabled");
+            Log("SendPresets() is disabled", LogLevel.Info);
 #else
             QueueCommand(Commands.SendPresets);
 #endif
@@ -550,7 +565,7 @@ namespace S5CommunicationLibrary.S5
         public void RequestPresets()
         {
 #if RELEASE
-            Log("RequestPresets() is disabled");
+            Log("RequestPresets() is disabled", LogLevel.Info);
 #else
             QueueCommand(Commands.RequestPresets);
 #endif            
@@ -565,13 +580,13 @@ namespace S5CommunicationLibrary.S5
 
                 _currentStatus = Status.Disconnected;
             }else{
-                Log("Can't Stop(), Receiver is not connected");
+                Log("Can't Stop(), Receiver is not connected", LogLevel.Info);
             }
         }
 
         private void QueueCommand(Commands command)
         {
-            Log("Command added to Queue: " + command);
+            Log("Command added to Queue: " + command, LogLevel.Debug);
             queuedCommands.Enqueue(command);
         }
 
@@ -585,7 +600,7 @@ namespace S5CommunicationLibrary.S5
             currentState = State.MakingRequest;
             currentCommand = command;
 
-            Log("Sending Command: " + command);
+            Log("Sending Command: " + command, LogLevel.Debug);
 
             CommandStartedTime = DateTime.UtcNow;
 
@@ -608,7 +623,7 @@ namespace S5CommunicationLibrary.S5
                     break;
             }
 
-            Log("State: " + currentState);
+            Log("State: " + currentState, LogLevel.Debug);
         }
 
         private enum Commands
@@ -646,6 +661,13 @@ namespace S5CommunicationLibrary.S5
             Connected
         }
 
+        public enum LogLevel{
+            Default,
+            Info,
+            Error,
+            Debug
+        }
+
         private string ByteArrayToString(byte[] ba)
         {
             StringBuilder hex = new StringBuilder(ba.Length * 2);
@@ -654,9 +676,9 @@ namespace S5CommunicationLibrary.S5
             return hex.ToString();
         }
 
-        private void Log(string s)
+        private void Log(string s, LogLevel logLevel = LogLevel.Default)
         {
-            LogWritten?.Invoke(this, s);
+            LogWritten?.Invoke(this, s, logLevel);
         }
     }
 }

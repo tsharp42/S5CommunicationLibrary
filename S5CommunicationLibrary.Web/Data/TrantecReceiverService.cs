@@ -13,13 +13,17 @@ namespace S5CommunicationLibrary.Web.Data
 
         private string[] availablePorts;
 
-        public string[] Log { get { return _log.ToArray(); }  }
-        private List<string> _log;
+        public string[] DebugLog { get { return _debuglog.ToArray(); }  }
+        private List<string> _debuglog;
+
+        public string[] InfoLog { get { return _infoLog.ToArray(); }  }
+        private List<string> _infoLog;
 
         public TrantecReceiverService()
         {
             IsRunning = false;
-            _log = new List<string>();
+            _debuglog = new List<string>();
+            _infoLog = new List<string>();
 
 
             ConfigurePorts();
@@ -98,12 +102,21 @@ namespace S5CommunicationLibrary.Web.Data
             IsRunning = true;
         }
 
-        private void Rx_LogWritten(S5.Receiver sender, string logLine)
+        private void Rx_LogWritten(S5.Receiver sender, string logLine, S5.Receiver.LogLevel logLevel)
         {
-            _log.Add("[" + sender.Name + "] " + logLine);
 
-            if (_log.Count > 200)
-                _log.RemoveAt(0); 
+            if(logLevel == Receiver.LogLevel.Debug)
+            {
+                _debuglog.Add("[" + sender.Name + "] " + logLine);
+
+                if (_debuglog.Count > 200)
+                    _debuglog.RemoveAt(0); 
+            }else{
+                _infoLog.Add("[" + sender.Name + "] " + logLine);
+
+                if (_infoLog.Count > 200)
+                    _infoLog.RemoveAt(0); 
+            }
         }
 
         public void Stop()

@@ -6,17 +6,61 @@
 
 @inject TrantecReceiverService ReceiverService
 
-
-@if (ReceiverService.Log != null)
-{
-    <pre>
-    @foreach (var line in ReceiverService.Log)
+<div class="row">
+    @foreach(S5.Receiver rx in ReceiverService.GetReceivers())
     {
-        @line @Environment.NewLine
+        <div class="col-12 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    @rx.Name - @rx.PortName
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                        @foreach(KeyValuePair<string, string> data in rx.DebugData)
+                        {
+                            <tr>
+                                <td><pre>@data.Key</pre></td>
+                                <td><pre>@data.Value</pre></td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        </div>
+    } 
+</div>
 
-    }
-    </pre>
-}
+<div class="row">
+    <div class="col-6">
+        @if (ReceiverService.DebugLog != null)
+        {
+            <pre>
+            @foreach (var line in ReceiverService.DebugLog)
+            {
+                @line @Environment.NewLine
+
+            }
+            </pre>
+        }
+    </div>
+    <div class="col-6">
+        @if (ReceiverService.InfoLog != null)
+        {
+            <pre>
+            @foreach (var line in ReceiverService.InfoLog)
+            {
+                @line @Environment.NewLine
+
+            }
+            </pre>
+        }
+    </div>
+</div>
+
 
 
 
