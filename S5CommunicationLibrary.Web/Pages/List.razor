@@ -25,10 +25,28 @@
         {
             @foreach (var rx in GetSortedReceiverList())
             {
-                <tr>
-                    <td style="vertical-align: middle">@rx.Name</td>
-                    <td style="vertical-align: middle">@rx.Frequency.ToString("000.000MHz")</td>
+                
+                <tr class="@((rx.CurrentStatus == S5.Receiver.Status.Connected)? "rx-connected" : "rx-disconnected")">
+                    <td style="vertical-align: middle">
+                        @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                            @rx.Name
+                        }else{
+                            <span>-</span>
+                        }
+                    </td>
+                    <td style="vertical-align: middle">
+                        @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                            @rx.Frequency.ToString("000.000MHz")
+                        }else{
+                            <span>-</span>
+                        }
+                    </td>
                     <td style="width: 30%">
+                        @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                        <!-- RF -->
                         <div class="progress 
                             @((rx.CurrentAntenna == S5.Receiver.Antenna.A)? "active-antenna" : "inactive-antenna")                       
                             ">
@@ -39,6 +57,7 @@
                                 @((rx.RFA >= 0.7f)? "bg-success" : "")
                             " role="progressbar" style="width: @(ToPercent(rx.RFA))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">A</div>
                         </div>
+
                         <div style="margin-top: 5px;" class="progress 
                             @((rx.CurrentAntenna == S5.Receiver.Antenna.B)? "active-antenna" : "inactive-antenna")
                         ">
@@ -49,9 +68,17 @@
                                 @((rx.RFB >= 0.7f)? "bg-success" : "")
                             " role="progressbar" style="width: @(ToPercent(rx.RFB))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">B</div>
                         </div>
+                        }else{
+                            <div class="rx-connect-button">
+                                Disconnected: @rx.PortName <button class="btn btn-primary" @onclick="(e) => {rx.Start();}">Connect</button>
+                            </div>
+                        }
                     </td>
 
                     <td style="vertical-align: middle">
+                        @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                        <!-- Audio Level -->
                         <div style="border: 1px solid black; height:32px" class="progress">
                             <div class="progress-bar
                                 @((rx.AudioLevel > 0.8f)? "bg-danger" : "")
@@ -60,6 +87,7 @@
                             " role="progressbar" style="width: @(ToPercent(rx.AudioLevel))" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
                             </div>
                         </div>
+                        }
                     </td>
                     <td style="vertical-align: middle; width: 15%;">
                         @if (!rx.IsMuted)
@@ -76,7 +104,7 @@
                         }
                     </td>
                     <td style="vertical-align: middle; width: 10%; text-align:center">
-                        @if(rx.IsMuted)
+                        @if(rx.IsMuted && rx.CurrentStatus == S5.Receiver.Status.Connected)
                         {
                             <h5><span class="badge bg-danger">MUTED</span></h5>
                         }

@@ -80,3 +80,8 @@ a, .btn-link {
     cursor: pointer;
     text-decoration: underline;
 }
+
+.rx-disconnected td{
+    text-align:center;
+    vertical-align: middle;
+}

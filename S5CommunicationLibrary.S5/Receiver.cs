@@ -17,6 +17,9 @@ namespace S5CommunicationLibrary.S5
         public string PortName { get { return _portName; } }
         private string _portName = "";
 
+        public Status CurrentStatus { get { return _currentStatus; }}
+        private Status _currentStatus = Status.Disconnected;
+
         private CancellationTokenSource cancellationToken;
 
         private Queue<Commands> queuedCommands;
@@ -451,12 +454,32 @@ namespace S5CommunicationLibrary.S5
         
         public void Start()
         {
-            serialPort.Open();
+            if(_currentStatus == Status.Disconnected)
+            {
+                _currentStatus = Status.Connecting;
 
-            QueueCommand(Commands.RequestFull);
+                serialPort.Open();
+                QueueCommand(Commands.RequestFull);
+                cancellationToken = new CancellationTokenSource();
+                new Task(() => PollingTask(), cancellationToken.Token, TaskCreationOptions.LongRunning).Start();
 
-            cancellationToken = new CancellationTokenSource();
-            new Task(() => PollingTask(), cancellationToken.Token, TaskCreationOptions.LongRunning).Start();
+
+                // The serial port should be open at this point
+                if(serialPort.IsOpen)
+                {
+                    _currentStatus = Status.Connected;
+                }else{
+                    // If the serial port is not open though, we should log and reset
+                    cancellationToken.Cancel();
+                    ResetState();
+                    _currentStatus = Status.Disconnected;
+
+                    Log("The serial port was not opened as expected");
+                }
+                
+            }else{
+                Log("Can't Start(), Receiver is either already connected or is connecting");
+            }
         }
 
         private void PollingTask()
@@ -535,8 +558,15 @@ namespace S5CommunicationLibrary.S5
 
         public void Stop()
         {
-            cancellationToken.Cancel();
-            serialPort?.Close();
+            if(_currentStatus == Status.Connected)
+            {
+                cancellationToken.Cancel();
+                serialPort?.Close();
+
+                _currentStatus = Status.Disconnected;
+            }else{
+                Log("Can't Stop(), Receiver is not connected");
+            }
         }
 
         private void QueueCommand(Commands command)
@@ -607,6 +637,13 @@ namespace S5CommunicationLibrary.S5
         {
             A,
             B
+        }
+
+        public enum Status
+        {
+            Disconnected,
+            Connecting,
+            Connected
         }
 
         private string ByteArrayToString(byte[] ba)

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using S5CommunicationLibrary.S5;
 
 namespace S5CommunicationLibrary.Web.Data
 {
@@ -8,7 +9,7 @@ namespace S5CommunicationLibrary.Web.Data
         
         public bool IsRunning { get; private set; }
 
-        private List<S5.Receiver> Receivers;
+        private List<Receiver> Receivers;
 
         private string[] availablePorts;
 
@@ -18,23 +19,18 @@ namespace S5CommunicationLibrary.Web.Data
         public TrantecReceiverService()
         {
             IsRunning = false;
-            ConfiguredReceivers = new string[] { };
             _log = new List<string>();
-            /*
-            Receivers = new List<S5.Receiver>();
-            
-            foreach(string rx in TrantecReceivers)
-            {
-                S5.Receiver rxo = new S5.Receiver(rx);
-                Receivers.Add(rxo);
 
-                rxo.Start();
-                
-            }
-            */
+
+            ConfigurePorts();
+            CreateReceivers();
+        }
+
+        private void ConfigurePorts()
+        {
+            ConfiguredReceivers = new string[] { };
 
             // Does the receivers file exist?
-
             if (System.IO.File.Exists("receivers.txt"))
             {
                 // Get all available ports to compare against
@@ -44,11 +40,13 @@ namespace S5CommunicationLibrary.Web.Data
                 List<string> rxlines = new List<string>();
                 while (!_stream.EndOfStream)
                 {
-                    string portName = _stream.ReadLine();
+                    string? portName = _stream.ReadLine();
 
-                    if(available.Contains(portName))
-                        rxlines.Add(portName);
-
+                    if(portName != null && available != null)
+                    {
+                        if(available.Contains(portName))
+                            rxlines.Add(portName);
+                    }
                 }
                 ConfiguredReceivers = rxlines.ToArray();
             }
@@ -56,14 +54,35 @@ namespace S5CommunicationLibrary.Web.Data
             {
                 ConfiguredReceivers = GetAvailablePorts();
             }
-            
-
-            Start();
         }
 
+
+        private void CreateReceivers(){
+            // If any receivers exist, stop them and then remove them before recreating this list
+            if(Receivers != null)
+            {
+                if(Receivers.Count > 0)
+                {
+                    foreach(Receiver rx in Receivers)
+                    {
+                        rx.Stop();
+                    }
+                }
+            }
+
+            // Recreate the receivers from the configured ports listing
+            Receivers = new List<Receiver>();
+
+            foreach(string s in ConfiguredReceivers)
+            {
+                Receiver rx = new Receiver(s);
+                rx.LogWritten += Rx_LogWritten;
+                Receivers.Add(rx);
+            }
+        }
         
 
-        public void Start()
+        public void StartAll()
         {
             if (IsRunning)
                 throw new Exception("Already running");
@@ -73,16 +92,7 @@ namespace S5CommunicationLibrary.Web.Data
                 throw new Exception("No Receivers have been configured");
 
 
-            Receivers = new List<S5.Receiver>();
-
-            foreach(string s in ConfiguredReceivers)
-            {
-                S5.Receiver rx = new S5.Receiver(s);
-                rx.LogWritten += Rx_LogWritten;
-                Receivers.Add(rx);
-                rx.Start();
-            }
-
+ 
             
 
             IsRunning = true;
