@@ -81,7 +81,9 @@ Receive
 Captured
 ```
 >> 52 00 3f
-<< 52 00 21 13 00 00 00 00 85 52 1f 00 55 73 65 72 31 37 83 
+<< 52 00 21 13 00 00 00 00 85 52 1f 00 55 73 65 72 31 37 83
+
+<< 52 00 21 01 00 00 00 00 05 52 1f 00 55 73 65 72 20 31 da 
 ```
 
 ## Request User Presets
@@ -133,6 +135,7 @@ Captured
 Observations
 - Even with the Trantec-Sourced software, running this command seems to select a random(?) user preset once complete. In testing, a receiver set to "User 1" would land on "User 17".
 - Having a higher User preset selected when sending this command will result in the receiver trying to load random memory as a preset, corrupting the display? (RX VER 1.9)
+- Receiver version 1.6 will crash and reboot after the above
 
 ## Send User Presets
 Send
