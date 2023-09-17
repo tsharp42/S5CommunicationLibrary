@@ -30,7 +30,7 @@ namespace S5CommunicationLibrary.Web.Data
             CreateReceivers();
         }
 
-        private void ConfigurePorts()
+        public void ConfigurePorts()
         {
             ConfiguredReceivers = new string[] { };
 
@@ -61,7 +61,7 @@ namespace S5CommunicationLibrary.Web.Data
         }
 
 
-        private void CreateReceivers(){
+        public void CreateReceivers(){
             // If any receivers exist, stop them and then remove them before recreating this list
             if(Receivers != null)
             {
@@ -88,18 +88,8 @@ namespace S5CommunicationLibrary.Web.Data
 
         public void StartAll()
         {
-            if (IsRunning)
-                throw new Exception("Already running");
-
-
-            if (ConfiguredReceivers.Length < 1)
-                throw new Exception("No Receivers have been configured");
-
-
- 
-            
-
-            IsRunning = true;
+            foreach (S5.Receiver rx in Receivers)
+                rx.Start();
         }
 
         private void Rx_LogWritten(S5.Receiver sender, string logLine, S5.Receiver.LogLevel logLevel)
@@ -119,17 +109,10 @@ namespace S5CommunicationLibrary.Web.Data
             }
         }
 
-        public void Stop()
+        public void StopAll()
         {
-            if (!IsRunning)
-                return;
-
             foreach (S5.Receiver rx in Receivers)
                 rx.Stop();
-
-            IsRunning = false;
-
-            Receivers.Clear();
         }
 
         public string[] GetAvailablePorts()

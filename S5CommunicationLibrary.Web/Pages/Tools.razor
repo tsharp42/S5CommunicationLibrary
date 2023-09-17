@@ -7,7 +7,7 @@
 @inject TrantecReceiverService ReceiverService
 
 
-<div class="row">
+<div class="row mb-3">
     <div class="col">
         <!-- Available ports -->
         <div class="card">
@@ -37,6 +37,54 @@
                         <li><pre>@port</pre></li>
                     }
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <!-- Available ports -->
+        <div class="card">
+            <div class="card-header">
+                Configured Receivers
+            </div>
+            <div class="card-body">
+                <div>
+                    <button class="btn btn-primary" @onclick="(e) => {ReceiverService.StartAll();}">Connect All</button>
+                    <button class="btn btn-danger" @onclick="(e) => {ReceiverService.StopAll();}">Disconnect All</button>
+                    <button class="btn btn-warning" @onclick="(e) => {ReceiverService.ConfigurePorts(); ReceiverService.CreateReceivers();}">Reload Configuration</button>
+                </div>
+                <hr />
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Port</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    @foreach(S5.Receiver rx in ReceiverService.GetReceivers())
+                    {
+                        <tr>
+                            <td>@rx.PortName</td>
+                            <td>@rx.CurrentStatus</td>
+                            <td>
+                                @if(rx.CurrentStatus == S5.Receiver.Status.Disconnected)
+                                {
+                                    <div>
+                                        <button class="btn btn-primary" @onclick="(e) => {rx.Start();}">Connect</button>
+                                    </div>
+                                }
+                                @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                                {
+                                    <div>
+                                        <button class="btn btn-danger" @onclick="(e) => {rx.Stop();}">Disconnect</button>
+                                    </div>
+                                   
+                                }
+                            </td>
+                        </tr>
+                    }
+                </table>
             </div>
         </div>
     </div>
