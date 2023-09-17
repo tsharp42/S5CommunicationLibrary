@@ -132,6 +132,7 @@ Captured
 
 Observations
 - Even with the Trantec-Sourced software, running this command seems to select a random(?) user preset once complete. In testing, a receiver set to "User 1" would land on "User 17".
+- Having a higher User preset selected when sending this command will result in the receiver trying to load random memory as a preset, corrupting the display? (RX VER 1.9)
 
 ## Send User Presets
 Send
