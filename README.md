@@ -1,4 +1,4 @@
-A C# Library and .Net Core Web App for control of Trantec S5.3 and S5.5 Receivers over USB
+A C# Library and .Net Core Web App for control of Trantec S5.3 and S5.5 Receivers over USB, this has been developed and tested with version 1.9 of the receiver firmware.
 
 ## Drivers
 The drivers supplied for the receivers do not provide a Serial Port device, you will need to force load the FTDI drivers or find some other workaround to have the receiver enumerate as a standard serial device.
