@@ -14,7 +14,7 @@ Send
 Receive
 ```
  52 00 44   46    40   77 0d      72       60    52 48 00 13 00
-| Header | RFA | RFB | Audio | Battery | Flags1 | ?????????????
+| Header | RFA | RFB | Audio | Battery | Flags1 |   FREQ |?????
 
 Header: Static
 RFA: RFA Level
@@ -32,6 +32,9 @@ Flags1
 [6] - Muted
 [7]
 [8] - Antenna, 1 = A, 0 = B
+
+FREQ: Current receiver frequency packed as integers?
+    0x52 0x32 0x4B = 82,50,75 = 825.075
 ```
 
 Captured

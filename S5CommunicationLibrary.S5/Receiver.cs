@@ -112,25 +112,23 @@ namespace S5CommunicationLibrary.S5
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            
+            // How many bytes are there to read, saved here as more bytes may arrive during processing
+            int bytesToRead = serialPort.BytesToRead;
 
             // Receive any serial data
-            byte[] buf = new byte[serialPort.BytesToRead];
+            byte[] buf = new byte[bytesToRead];
 
             try{
-                serialPort.Read(buf, 0, serialPort.BytesToRead);
+                serialPort.Read(buf, 0, bytesToRead);
             }catch(Exception ex){
                 Log("Exception reading the serial port: " + ex.Message, LogLevel.Error);
             }
             
-
-            // Continually add it to the buffer
-            currentBuffer.AddRange(buf);
-
+            // In idle state we discard the data, else add the data to the read buffer
             if (currentState == State.Idle)
-            {
                 currentBuffer.Clear();
-            }
+            else
+                currentBuffer.AddRange(buf);
 
             // Wait for header data
             if (currentState == State.AwaitingHeader)
@@ -217,27 +215,6 @@ namespace S5CommunicationLibrary.S5
        
         }
 
-        private void ProcessMessage_Full()
-        {
-            _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
-
-            _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
-
-            // Unpack the frequency
-            int num1 = currentBuffer[9]; // 82
-            int num2 = currentBuffer[10]; // 50
-            int num3 = currentBuffer[11]; // 75
-                                          // 825.075
-            // Do some string magic to get the decimal from this lot
-            string result = num1.ToString("00") + num2.ToString("00") + num3.ToString("00");
-            result = result.Substring(0, 3) + "." + result.Substring(3, 3);
-            _frequency = decimal.Parse(result);
-
-            Log("Full Message: " + ByteArrayToString(currentBuffer.ToArray()), LogLevel.Debug);
-
-            ResetState();
-        }
-
         private void SendMessage_SendPresets()
         {
             Log("Preparing to send presets", LogLevel.Info);
@@ -297,36 +274,47 @@ namespace S5CommunicationLibrary.S5
             ResetState();
         }
 
+        private void ProcessMessage_Full()
+        {
+            _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
+
+            // 52 00 21 13 00 00 00 00 05 52 32 4B 55 73 65 72 31 37 61
+            //|   HDR  | L|           |ML| FREQ   |     NAME        |CHK
+            // 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18
+
+            // Name - 12 -> 17
+            _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
+
+            // Frequency - 9 -> 11
+            _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
+
+            ResetState();
+        }
+
+        
         private void ProcessMessage_Metering()
         {
             _debugData["ProcessMessage_Metering"] = ByteArrayToString(currentBuffer.ToArray());
 
-
             // 52 00 44   a8     9d    77 0d   85    c0       53 04 00 13 57
-            //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS | ??????????????
+            //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS |   FREQ  | ??????
+            // 00 01 02   03     04    05 06   07    08       09 10 11 12 13
 
-
-            // RF
-            // -----
+            // RFA - 3
+            // RFB - 4
             byte RFAdata = currentBuffer[3];
             byte RFBdata = currentBuffer[4];
-
-            // TODO: Unsure on the value mapping here
             Log("A Data: " + (RFAdata - 60), LogLevel.Debug);
             Log("B Data: " + (RFBdata - 60), LogLevel.Debug);
             _rfA = (float)(RFAdata - 60) / 90.0f;
             _rfB = (float)(RFBdata - 60) / 90.0f;
 
-            // AUDIO
-            // ---------
+            // AUDIO - 5 -> 6
             Int16 vu = BitConverter.ToInt16(currentBuffer.ToArray(), 5);
             Log("VU: " + (vu - 3000), LogLevel.Debug);
             _audioLevel = (float)(vu - 3000) / (float)(Int16.MaxValue - 6000);
 
-            // BATT
-            // ---------
-            // 20 -> 80?
-            // TODO: Unsure on the value mapping here
+            // BATT - 7 - Range: 20->80
             byte BatteryData = currentBuffer[7];
             Log("Battery Data: " + (BatteryData - 51), LogLevel.Debug);
             _batteryLevel = (float)(BatteryData - 51) / 152.0f;
@@ -343,6 +331,9 @@ namespace S5CommunicationLibrary.S5
 
             // Bit 6 = Mute
             _isMuted = (flagByte & (1 << 6 - 1)) != 0;
+
+            // Frequency - 9 -> 11
+            _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
             
             // Signal that the metering was updated
             MetersUpdated?.Invoke(this, new EventArgs());
@@ -501,9 +492,6 @@ namespace S5CommunicationLibrary.S5
         {
             while (!cancellationToken.Token.IsCancellationRequested)
             {
-                //sendCommand(Commands.RequestMeters);
-
-
                 // If we are idle and there's a command to process, do it
                 if (queuedCommands.Count > 0 && currentState == State.Idle) 
                 {
@@ -668,6 +656,30 @@ namespace S5CommunicationLibrary.S5
             Debug
         }
 
+        private static decimal UnpackFrequency(byte[] data)
+        {
+            if(data is null)
+                return 0.0M;
+
+            if(data.Length != 3)
+                return 0.0M;
+
+            if(data.Length == 3)
+            {
+                // Unpack the frequency
+                int num1 = data[0]; // 82
+                int num2 = data[1]; // 50
+                int num3 = data[2]; // 75
+                                            // 825.075
+                // Do some string magic to get the decimal from this lot
+                string result = num1.ToString("00") + num2.ToString("00") + num3.ToString("00");
+                result = result.Substring(0, 3) + "." + result.Substring(3, 3);
+                return decimal.Parse(result);
+            }
+
+            return 0.0M;
+        }
+
         private string ByteArrayToString(byte[] ba)
         {
             StringBuilder hex = new StringBuilder(ba.Length * 2);
@@ -688,5 +700,6 @@ namespace S5CommunicationLibrary.S5
                 LogWritten?.Invoke(this, s, logLevel);
             #endif
         }
+
     }
 }
