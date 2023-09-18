@@ -319,10 +319,13 @@ namespace S5CommunicationLibrary.S5
             Log("Battery Data: " + (BatteryData - 51), LogLevel.Debug);
             _batteryLevel = (float)(BatteryData - 51) / 152.0f;
 
+
+
             // FLAGS
             // ---------
-            // Bit 8 = Antenna
             byte flagByte = currentBuffer[8];
+            _debugData["ProcessMessage_Metering_Flags"] = Convert.ToString(flagByte,2).PadLeft(8, '0');
+            // Bit 8 = Antenna
             bool ant = (flagByte & (1 << 8 - 1)) != 0;
             if (ant)
                 _currentAntenna = Antenna.A;
