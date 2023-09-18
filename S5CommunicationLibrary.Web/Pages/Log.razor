@@ -35,30 +35,47 @@
 </div>
 
 <div class="row">
-    <div class="col-6">
-        @if (ReceiverService.DebugLog != null)
-        {
-            <pre>
-            @foreach (var line in ReceiverService.DebugLog)
-            {
-                @line @Environment.NewLine
 
-            }
-            </pre>
-        }
-    </div>
-    <div class="col-6">
-        @if (ReceiverService.InfoLog != null)
-        {
-            <pre>
-            @foreach (var line in ReceiverService.InfoLog)
-            {
-                @line @Environment.NewLine
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Info Log
+            </div>
+            <div class="card-body">
+                @if (ReceiverService.InfoLog != null)
+                {
+                    <pre>
+                    @foreach (var line in ReceiverService.InfoLog)
+                    {
+                        @line @Environment.NewLine
 
-            }
-            </pre>
-        }
+                    }
+                    </pre>
+                }
+            </div>
+        </div>
     </div>
+
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Debug Log
+            </div>
+            <div class="card-body">
+                @if (ReceiverService.DebugLog != null)
+                {
+                    <pre>
+                    @foreach (var line in ReceiverService.DebugLog)
+                    {
+                        @line @Environment.NewLine
+
+                    }
+                    </pre>
+                }
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
@@ -82,7 +99,7 @@
 
             InvokeAsync(() => StateHasChanged());
 
-        }, null, 0, 100);
+        }, null, 0, 1000);
     }
 
 

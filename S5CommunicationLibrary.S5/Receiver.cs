@@ -678,7 +678,15 @@ namespace S5CommunicationLibrary.S5
 
         private void Log(string s, LogLevel logLevel = LogLevel.Default)
         {
-            LogWritten?.Invoke(this, s, logLevel);
+            #if RELEASE
+                // On release builds, do not write debug messages
+                if(logLevel != LogLevel.Debug)
+                {
+                    LogWritten?.Invoke(this, s, logLevel);
+                }
+            #else
+                LogWritten?.Invoke(this, s, logLevel);
+            #endif
         }
     }
 }
