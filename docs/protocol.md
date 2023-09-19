@@ -175,24 +175,35 @@ Captured
 00cc  05
 ```
 
-## Set Mute Level & "PcMute"
+## Set Mute Level & "PcMute" ?
 Send
 ```
  52 00 6d 00 00 00 06 00 00 00 00 00 00
-| Header |   ?    |ML|        ?  |F1| ?
+| Header |   ?    |ML|        ?  |PC| ?
 
 ML: Mute Level, 0x01 To 0x0a (1->10)
-F1: Flags1
-[1]
-[2] - PcMute?
-[3]
-[4]
-[5]
-[6]
-[7]
-[8]
+PC Mute: 40 = ON, 00 = OFF (Maybe flag byte?)
 
 << 52 00 6d 00 00 00 05 00 00 00 00 00 00 - PcMute Off
 << 52 00 6d 00 00 00 05 00 00 00 00 40 00 - PcMute On
 ```
 
+## Set Frequency
+Send
+```
+ 52 00 49 53 0c 19 05 00 00 00 01 00 7e
+| HEADER | FREQ   |ML|        |     |CHK
+         |--------CHECKSUM----------| ^
+
+FREQ: Frequency packed as integers?
+    0x52 0x32 0x4B = 82,50,75 = 825.075
+ML: Mute Level, 0x01 To 0x0a (1->10)
+CHK = Modulo 256
+```
+
+Captured
+```
+<< 52 00 49 53 0c 19 05 00 00 00 01 00 7e - SET 831.225
+<< 52 00 49 53 00 00 05 00 00 00 01 00 59 - SET 830.000
+<< 52 00 49 53 16 19 06 00 00 00 01 00 89 - SET 832.225 - ML 6
+```
