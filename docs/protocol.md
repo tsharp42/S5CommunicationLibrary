@@ -184,6 +184,12 @@ Send
 ML: Mute Level, 0x01 To 0x0a (1->10)
 PC Mute: 40 = ON, 00 = OFF (Maybe flag byte?)
 
+On V1.9 of the RX Firmware, the display will show "PcMute" when enabled
+V1.6 & V1.7 Do not give any indication PcMute is enabled, If it is supported at all.
+```
+
+Captured
+```
 << 52 00 6d 00 00 00 05 00 00 00 00 00 00 - PcMute Off
 << 52 00 6d 00 00 00 05 00 00 00 00 40 00 - PcMute On
 ```
