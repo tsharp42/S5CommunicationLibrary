@@ -175,11 +175,24 @@ Captured
 00cc  05
 ```
 
-## Set Mute Level (?)
+## Set Mute Level & "PcMute"
 Send
 ```
  52 00 6d 00 00 00 06 00 00 00 00 00 00
-| Header |   ?    |ML|        ?        |
+| Header |   ?    |ML|        ?  |F1| ?
 
 ML: Mute Level, 0x01 To 0x0a (1->10)
+F1: Flags1
+[1]
+[2] - PcMute?
+[3]
+[4]
+[5]
+[6]
+[7]
+[8]
+
+<< 52 00 6d 00 00 00 05 00 00 00 00 00 00 - PcMute Off
+<< 52 00 6d 00 00 00 05 00 00 00 00 40 00 - PcMute On
 ```
+
