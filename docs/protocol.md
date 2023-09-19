@@ -207,3 +207,20 @@ Captured
 << 52 00 49 53 00 00 05 00 00 00 01 00 59 - SET 830.000
 << 52 00 49 53 16 19 06 00 00 00 01 00 89 - SET 832.225 - ML 6
 ```
+
+## Set Name
+Send
+```
+ 52 00 4d 41 42 43 08 44 45 46 00 00 00
+| HEADER |C1 C2 C3|ML|C4 C5 C6|
+
+C1-6 - ASCII Chars of new name
+ML: Mute Level, 0x01 To 0x0a (1->10)
+ 
+```
+
+Captured
+```
+<< 52 00 4d 41 42 43 08 44 45 46 00 00 00 - Set to "ABCDEF" - ML 8
+<< 52 00 4d 31 32 33 09 34 35 36 00 00 00 - Set to "123456" - ML 9
+```
