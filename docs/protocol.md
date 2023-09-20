@@ -3,7 +3,21 @@
   * VID 0304, PID C719
   * 57600, 8N1
 
-# Protocol
+# Overview
+| Command                  | Implemented | Notes                           |
+|--------------------------|-------------|---------------------------------|
+| Request Metering         | 🟠          | 2 Unknown Bytes                |
+| Request Full Status      | 🟢          |                                |
+| Request User Presets     | 🟢          |                                |
+| Send User Presets        | 🟠          | Requires Testing               |
+| Set PcMute               | 🟠          | Requires Testing               |
+| Set Mute Level           | 🔴          |                                |
+| Set Name                 | 🔴          |                                |
+| Set Frequency            | 🔴          |                                |
+
+
+ 
+# Protocol Details
 
 ## Request Metering Data
 Send
@@ -86,7 +100,7 @@ Captured
 << 52 00 21 01 00 00 00 00 05 52 1f 00 55 73 65 72 20 31 da 
 ```
 
-## Request User Presets
+## Request User Presets ✅
 Send
 ```
 0x52 0x55
