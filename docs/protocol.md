@@ -191,6 +191,9 @@ Captured
 << 52 00 6d 00 00 00 05 00 00 00 00 40 00 - PcMute On
 ```
 
+Observations
+- The receivers have no error checking for input data. Incorrect setting of ML byte nearly bricked a V1.9 Receiver. 
+
 ## Set Frequency
 Send
 ```
