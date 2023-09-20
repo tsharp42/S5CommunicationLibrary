@@ -5,22 +5,7 @@ A C# Library and .Net Core Web App for control of Trantec S5.3 and S5.5 Receiver
 ## Documentation
 - [Protocol Specification](./docs/protocol.md)
 - [Linux Installation - Ubuntu Server 22.04 LTS](./docs/linux-install.md)
-
-
-## Drivers
-The drivers supplied for the receivers do not provide a Serial Port device, you will need to force load the FTDI drivers or find some other workaround to have the receiver enumerate as a standard serial device.
-I recommend sticking with Linux as this does not require any modification to the receiver or drivers.
-
-## Windows
-### [Windows] Modify the receiver
-Use the FTDI configuration tool (FT_PROG) to reconfigure the USB VID and PID to the defaults (0403/6001) so the standard FTDI driver works.
-This will break compatibility with the manufacturer software.
-This has the potential to completely brick the USB functionality if done incorrectly
-
-FT_PROG - https://ftdichip.com/utilities/
-
-### [Windows] Modify the driver
-Modify the FTDI drivers with the VID/PID combination of 0304/C719. You will probably also need to disable driver signing among other things.
+- [Windows Installation - Not Recommended](./docs/windows-install.md)
 
 ## Linux
 ### [Linux] Force driver load (Once) - Tested with Ubuntu 22.04 LTS
