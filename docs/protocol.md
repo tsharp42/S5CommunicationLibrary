@@ -6,7 +6,7 @@
 # Overview
 | Command                  | Implemented | Notes                           |
 |--------------------------|-------------|---------------------------------|
-| Request Metering         | 🟠          | 2 Unknown Bytes                |
+| Request Metering         | 🟠          | 1 Unknown Byte                 |
 | Request Full Status      | 🟢          |                                |
 | Request User Presets     | 🟢          |                                |
 | Send User Presets        | 🟠          | Requires Testing               |
@@ -28,13 +28,18 @@ Send
 Receive
 ```
  52 00 44   46    40   77 0d      72       60    52 48 00 13 00
-| Header | RFA | RFB | Audio | Battery | Flags1 |   FREQ |?????
+| Header | RFA | RFB | Audio | Battery | Flags1 |   FREQ |FW|???
 
 Header: Static
 RFA: RFA Level
 RFB: RFB Level
 Audio: Int16 audio Level
 Battery: Battery Level
+
+FW: Firmware Version?
+    0x13 = 19 = V1.9
+    0x11 = 17 = V1.7
+    0x01... V1.6?! - Maybe this was meant to be 0x10 = 16 = V1.6
 
 Flags1
 -------------
