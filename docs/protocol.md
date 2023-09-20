@@ -49,7 +49,7 @@ Captured
 << 52 00 44 52 53 78 0c 72 60 53 04 00 13 de [BK1.01 - 830.400]
 ```
 
-## Request Full Status
+## Request Full Status ✅
 Send
 ```
 0x52 0x00 0x3F
