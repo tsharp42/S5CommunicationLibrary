@@ -333,20 +333,8 @@ namespace S5CommunicationLibrary.S5
             //|   HDR  |FW|           |ML| FREQ   |     NAME        |CHK
             // 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18
 
-            // Firmware version?
-            switch(currentBuffer[3])
-            {
-                case 0x01:
-                    _firmwareVersion = 1.6M;
-                    break;
-                case 0x11:
-                case 0x13:
-                    _firmwareVersion = (decimal)currentBuffer[3] / 10;
-                    break;
-                default:
-                    _firmwareVersion = 0.0M;
-                    break;
-            }
+            // Firmware version
+            _firmwareVersion = ByteToFirmwareVersion(currentBuffer[3]);
 
             // Name - 12 -> 17
             _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
@@ -371,7 +359,7 @@ namespace S5CommunicationLibrary.S5
             _debugData["ProcessMessage_Metering"] = ByteArrayToString(currentBuffer.ToArray());
 
             // 52 00 44   a8     9d    77 0d   85    c0       53 04 00 13 57
-            //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS |   FREQ  | ??????
+            //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS |   FREQ  |FW|
             // 00 01 02   03     04    05 06   07    08       09 10 11 12 13
 
             // RFA - 3
@@ -395,6 +383,7 @@ namespace S5CommunicationLibrary.S5
 
 
 
+
             // FLAGS
             // ---------
             byte flagByte = currentBuffer[8];
@@ -414,6 +403,9 @@ namespace S5CommunicationLibrary.S5
 
             // Frequency - 9 -> 11
             _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
+
+            // Firmware version - 12
+            _firmwareVersion = ByteToFirmwareVersion(currentBuffer[12]);
             
             // Signal that the metering was updated
             MetersUpdated?.Invoke(this, new EventArgs());
@@ -785,6 +777,20 @@ namespace S5CommunicationLibrary.S5
             }
 
             return 0.0M;
+        }
+
+        private static decimal ByteToFirmwareVersion(byte data)
+        {
+            switch(data)
+            {
+                case 0x01:
+                    return 1.6M;
+                case 0x11:
+                case 0x13:
+                    return (decimal)data / 10;
+                default:
+                    return 0.0M;
+            }
         }
 
         private string ByteArrayToString(byte[] ba)
