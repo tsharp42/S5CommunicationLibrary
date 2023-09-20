@@ -4,6 +4,8 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Configuration.Assemblies;
+using System.ComponentModel;
 
 namespace S5CommunicationLibrary.S5
 {
@@ -55,6 +57,9 @@ namespace S5CommunicationLibrary.S5
 
         public int MuteLevel { get { return _muteLevel; } }
         private int _muteLevel = 0;
+
+        public bool IsPcMuted { get { return _isPcMuted; } }
+        private bool _isPcMuted = false;
 
         public Dictionary<string, string> DebugData { get { return _debugData; } }
         private Dictionary<string, string> _debugData;
@@ -277,6 +282,49 @@ namespace S5CommunicationLibrary.S5
             ResetState();
         }
 
+        private void SendMessage_PcMute(bool mute)
+        {
+            // 52 00 6d 00 00 00 06 00 00 00 00 00 00
+            //| HEADER |     ?  |ML|     ?     |PC| ?
+            // ML = Mute Level
+            // PC = PC Mute, 0x40 ON, 0x00 OFF
+
+            Log("Preparing to set PC Mute", LogLevel.Info);
+            Log("Mute Status: " + mute, LogLevel.Info);
+
+
+            List<byte> data = new List<byte>();
+
+            // Build header, 0x52 0x00 0x6d 0x00 0x00 0x00
+            data.AddRange(new byte[] { 0x52, 0x00, 0x6d, 0x00, 0x00, 0x00 });
+
+            // Add Mute Level
+            data.Add((byte)_muteLevel);
+
+            // Static 00 bytes
+            data.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x00  });
+
+            // PC Mute
+            if(mute)
+                data.Add(0x40);
+            else
+                data.Add(0x00);
+
+            // 0x00 end byte?
+            data.Add(0x00);
+
+            ////data = new List<byte>();
+            //data.AddRange(new byte[] { 0x52, 0x00, 0x6d, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  });
+
+
+            // Log the data sent
+            byte[] outData = data.ToArray();
+            _debugData["SendMessage_PcMute"] = ByteArrayToString(outData);
+            serialPort.Write(outData, 0, outData.Length);
+
+            ResetState();
+        }
+
         private void ProcessMessage_Full()
         {
             _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
@@ -302,6 +350,14 @@ namespace S5CommunicationLibrary.S5
 
             // Name - 12 -> 17
             _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
+
+            // Mute Level - High 4 bits of byte
+            _muteLevel = currentBuffer[8] & 0x0F;
+            if(_muteLevel < 0)
+                _muteLevel = 0;
+
+            if(_muteLevel > 10)
+                _muteLevel = 10;
 
             // Frequency - 9 -> 11
             _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
@@ -352,6 +408,9 @@ namespace S5CommunicationLibrary.S5
 
             // Bit 6 = Mute
             _isMuted = (flagByte & (1 << 6 - 1)) != 0;
+
+            // Bit 2 = PC Mute
+            _isPcMuted = (flagByte & (1 << 2 - 1)) != 0;
 
             // Frequency - 9 -> 11
             _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
@@ -545,7 +604,14 @@ namespace S5CommunicationLibrary.S5
                         case Commands.SendPresets:
                             currentState = State.Sending;
                             SendMessage_SendPresets();
-
+                            break;
+                        case Commands.PcMuteOn:
+                            currentState = State.Sending;
+                            SendMessage_PcMute(true);
+                            break;
+                        case Commands.PcMuteOff:
+                        currentState = State.Sending;
+                            SendMessage_PcMute(false);
                             break;
                     }
                 }
@@ -578,6 +644,18 @@ namespace S5CommunicationLibrary.S5
 #else
             QueueCommand(Commands.RequestPresets);
 #endif            
+        }
+
+        public void SetPcMute(bool mute)
+        {
+#if RELEASE
+            Log("SetPcMute() is disabled", LogLevel.Info);
+#else
+            if(mute)
+                QueueCommand(Commands.PcMuteOn);
+            else
+                QueueCommand(Commands.PcMuteOff);
+#endif   
         }
 
         public void Stop()
@@ -630,6 +708,10 @@ namespace S5CommunicationLibrary.S5
                 case Commands.SendPresets:
                     currentState = State.AwaitingSend;
                     break;
+                case Commands.PcMuteOn:
+                case Commands.PcMuteOff:
+                    currentState = State.AwaitingSend;
+                    break;
             }
 
             Log("State: " + currentState, LogLevel.Debug);
@@ -641,7 +723,9 @@ namespace S5CommunicationLibrary.S5
             RequestMeters,
             RequestFull,
             RequestPresets,
-            SendPresets
+            SendPresets,
+            PcMuteOn,
+            PcMuteOff
         }
 
         private enum State

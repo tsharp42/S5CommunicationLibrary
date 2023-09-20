@@ -61,6 +61,7 @@
                         <th>Port</th>
                         <th>Status</th>
                         <th>Firmware Version</th>
+                        <th>Mute Level</th>
                         <th>Action</th>
                     </tr>
                     @foreach(S5.Receiver rx in ReceiverService.GetReceivers())
@@ -73,6 +74,9 @@
                                 {
                                     @rx.FirmwareVersion;
                                 }
+                            </td>
+                            <td>
+                                @rx.MuteLevel
                             </td>
                             <td>
                                 @if(rx.CurrentStatus == S5.Receiver.Status.Disconnected)

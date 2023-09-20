@@ -18,6 +18,8 @@
         <th>Audio Level</th>
         <th>Battery Level</th>
         <th>Muted</th>
+
+        <th>Actions</th>
     </tr>
 </thead>
 <tbody>
@@ -106,9 +108,24 @@
                     <td style="vertical-align: middle; width: 10%; text-align:center">
                         @if(rx.IsMuted && rx.CurrentStatus == S5.Receiver.Status.Connected)
                         {
-                            <h5><span class="badge bg-danger">MUTED</span></h5>
+                            <span class="badge bg-danger">MUTED</span>
+                        }
+                        @if(rx.IsPcMuted && rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                            <span class="badge bg-warning">PC MUTED</span>
                         }
                         
+                    </td>
+                    <td>
+                        @if(rx.CurrentStatus == S5.Receiver.Status.Connected)
+                        {
+                            @if(rx.IsPcMuted)
+                            {
+                                <button class="btn btn-danger" @onclick="(e) => {rx.SetPcMute(false);}">UnMute</button>
+                            }else{
+                                <button class="btn btn-danger" @onclick="(e) => {rx.SetPcMute(true);}">Mute</button>
+                            }
+                        }
                     </td>
                 </tr>
             }

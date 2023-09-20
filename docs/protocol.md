@@ -68,7 +68,10 @@ Receive
      0x11 = 17 = V1.7
      0x01... V1.6?! - Maybe this was meant to be 0x10 = 16 = V1.6
 
- ML: Mute Level, 0x01 To 0x0a (1->10)
+ ML: Mute Level
+     High 4 Bits, 0x01 To 0x0a (1->10)
+     Low 4 Bits: Unknown
+
  FREQ: Current receiver frequency packed as integers?
      0x52 0x32 0x4B = 82,50,75 = 825.075
      
