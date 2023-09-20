@@ -59,6 +59,9 @@ namespace S5CommunicationLibrary.S5
         public Dictionary<string, string> DebugData { get { return _debugData; } }
         private Dictionary<string, string> _debugData;
 
+        public decimal FirmwareVersion { get{ return _firmwareVersion; }}
+        private decimal _firmwareVersion = 0.0M;
+
 
         // Command Processing State
         private State currentState;
@@ -279,8 +282,23 @@ namespace S5CommunicationLibrary.S5
             _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
 
             // 52 00 21 13 00 00 00 00 05 52 32 4B 55 73 65 72 31 37 61
-            //|   HDR  | L|           |ML| FREQ   |     NAME        |CHK
+            //|   HDR  |FW|           |ML| FREQ   |     NAME        |CHK
             // 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18
+
+            // Firmware version?
+            switch(currentBuffer[3])
+            {
+                case 0x01:
+                    _firmwareVersion = 1.6M;
+                    break;
+                case 0x11:
+                case 0x13:
+                    _firmwareVersion = (decimal)currentBuffer[3] / 10;
+                    break;
+                default:
+                    _firmwareVersion = 0.0M;
+                    break;
+            }
 
             // Name - 12 -> 17
             _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
@@ -658,6 +676,8 @@ namespace S5CommunicationLibrary.S5
             Error,
             Debug
         }
+
+
 
         private static decimal UnpackFrequency(byte[] data)
         {
