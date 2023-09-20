@@ -1,4 +1,4 @@
-Tested with Ubuntu Server 23.04 LTS on a cheap "Z83" Atom based mini PC
+Tested with Ubuntu Server 22.04 LTS on a cheap "Z83" Atom based mini PC
 
 Install Ubuntu Server, select the SSH server option during install, I used a username of "trantec"
 
