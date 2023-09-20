@@ -58,12 +58,16 @@ Send
 Receive
 ```
  52 00 21 13 00 00 00 00 05 52 32 4b 55 73 65 72 31 37 61
-| Header | L|           |ML| FREQ   |      NAME       | CHK
+| Header |FW|           |ML| FREQ   |      NAME       | CHK
 |-----------------------CHECKSUM----------------------|  ^
  
  
  Header: Static
- L: Length of message. 0x13 = 19
+ FW: Firmware Version?
+     0x13 = 19 = V1.9
+     0x11 = 17 = V1.7
+     0x01... V1.6?! - Maybe this was meant to be 0x10 = 16 = V1.6
+
  ML: Mute Level, 0x01 To 0x0a (1->10)
  FREQ: Current receiver frequency packed as integers?
      0x52 0x32 0x4B = 82,50,75 = 825.075
