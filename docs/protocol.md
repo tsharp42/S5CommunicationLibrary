@@ -44,7 +44,7 @@ FW: Firmware Version?
 Flags1
 -------------
 [1]
-[2]
+[2] - PCMute
 [3]
 [4]
 [5]
