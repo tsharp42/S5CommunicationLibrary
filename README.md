@@ -2,11 +2,14 @@ A C# Library and .Net Core Web App for control of Trantec S5.3 and S5.5 Receiver
 
 ⚠️ This implementation is **very** experimental. The receivers do almost no error checking. While the main status commands seem fairly harmless, commands that write data to the receiver have the ability to completely brick the receiver. This may be difficult to recover. All complex write commands are disabled in release builds for this reason. ⚠️
 
+## Documentation
+- [Protocol Specification](./docs/protocol.md)
+- [Linux Installation - Ubuntu Server 22.04 LTS](./docs/linux-install.md)
+
+
 ## Drivers
 The drivers supplied for the receivers do not provide a Serial Port device, you will need to force load the FTDI drivers or find some other workaround to have the receiver enumerate as a standard serial device.
-
 I recommend sticking with Linux as this does not require any modification to the receiver or drivers.
-
 
 ## Windows
 ### [Windows] Modify the receiver
