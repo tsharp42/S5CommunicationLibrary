@@ -79,8 +79,8 @@ namespace S5CommunicationLibrary.S5
 
         // Events
         public delegate void LogEventHandler(Receiver sender, string logLine, LogLevel logLevel);
-        public event LogEventHandler LogWritten;
-        public event EventHandler MetersUpdated;
+        public event LogEventHandler? LogWritten;
+        public event EventHandler? MetersUpdated;
 
         public static string[] GetReceivers()
         {
@@ -319,8 +319,16 @@ namespace S5CommunicationLibrary.S5
 
             // Log the data sent
             byte[] outData = data.ToArray();
-            _debugData["SendMessage_PcMute"] = ByteArrayToString(outData);
-            serialPort.Write(outData, 0, outData.Length);
+
+            // Check command validity before send
+            var validationResult = CommandValidator.IsCommandValid(outData);
+            if(validationResult.IsValid)
+            {
+                _debugData["SendMessage_PcMute"] = ByteArrayToString(outData) + " [VALID]";
+                serialPort.Write(outData, 0, outData.Length);
+            }else{
+                Log("SendMessage_PcMute() - Invalid Command Data ('"+validationResult.ValidationMessage+"')- " + ByteArrayToString(outData), LogLevel.Error) ;
+            }
 
             ResetState();
         }
