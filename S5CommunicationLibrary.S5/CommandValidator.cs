@@ -19,6 +19,10 @@ namespace S5CommunicationLibrary.S5
                 // 00 01 02 03 04 05 06 07 08 09 10 11 12
                 if(commandData[0] == 0x52 && commandData[1] == 0x00 && commandData[2] == 0x6d)
                 {
+                    // Length check, this command is 13 bytes
+                    if(commandData.Length != 13)
+                        return new CommandValidationResult(false, "Incorrect length");
+
                     // Byte 6 = Mute Level, 0x01 -> 0x0a
                     if(commandData[6] < 0x01)
                         return new CommandValidationResult(false, "Mute level < 0x01");
