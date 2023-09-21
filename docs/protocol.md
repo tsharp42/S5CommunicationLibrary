@@ -10,7 +10,7 @@
 | Request Full Status      | 🟢          |                                |
 | Request User Presets     | 🟢          |                                |
 | Send User Presets        | 🟠          | Requires Testing               |
-| Set PcMute               | 🟠          | Requires Testing               |
+| Set PcMute               | 🟢          | RX Firmware >V1.7?             |
 | Set Mute Level           | 🔴          |                                |
 | Set Name                 | 🔴          |                                |
 | Set Frequency            | 🔴          |                                |
