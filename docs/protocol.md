@@ -6,14 +6,14 @@
 # Overview
 | Command                  | Implemented | Notes                           |
 |--------------------------|-------------|---------------------------------|
-| Request Metering         | 🟠          | 1 Unknown Byte                 |
-| Request Full Status      | 🟢          |                                |
-| Request User Presets     | 🟢          |                                |
-| Send User Presets        | 🟠          | Requires Testing               |
-| Set PcMute               | 🟢          | RX Firmware >V1.7?             |
-| Set Mute Level           | 🔴          |                                |
-| Set Name                 | 🔴          |                                |
-| Set Frequency            | 🔴          |                                |
+| Request Metering         | 🟠          | 1 Unknown Byte                  |
+| Request Full Status      | 🟢          |                                 |
+| Request User Presets     | 🟢          |                                 |
+| Send User Presets        | 🟠          | Requires Testing                |
+| Set PcMute               | 🟢          | RX Firmware >V1.7?              |
+| Set Mute Level           | 🟢          |                                 |
+| Set Name                 | 🔴          |                                 |
+| Set Frequency            | 🔴          |                                 |
 
 
  
