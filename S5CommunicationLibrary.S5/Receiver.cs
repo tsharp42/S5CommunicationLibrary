@@ -148,7 +148,48 @@ namespace S5CommunicationLibrary.S5
                 if(currentBuffer.Count >= currentCommand.ExpectedDataLength)
                 {
                     Log("Got data, processing", LogLevel.Debug);
+                    _debugData[currentCommand.GetType().Name + "_PROCESS"] = ByteArrayToString(currentBuffer.ToArray());
                     currentState = State.Processing;
+
+                    S5CommunicationLibrary.S5.Commands.Data.CommandReturnData commandData = currentCommand.ProcessData(currentBuffer.ToArray());
+
+
+                    if(commandData != null)
+                    {
+                        if(commandData.FirmwareVersion != null)
+                            _firmwareVersion = (decimal)commandData.FirmwareVersion;
+
+                        if(commandData.Name != null)
+                            _name = (string)commandData.Name;
+
+                        if(commandData.MuteLevel != null)
+                            _muteLevel = (int)commandData.MuteLevel;
+
+                        if(commandData.Frequency != null)
+                            _frequency = (decimal)commandData.Frequency;
+
+                        if(commandData.RFA != null)
+                            _rfA = (float)commandData.RFA;
+
+                        if(commandData.RFB != null)
+                            _rfB = (float)commandData.RFB;
+
+                        if(commandData.AudioLevel != null)
+                            _audioLevel = (float)commandData.AudioLevel;
+
+                        if(commandData.BatteryLevel != null)
+                            _batteryLevel = (float)commandData.BatteryLevel;
+
+                        if(commandData.IsMuted != null)
+                            _isMuted = (bool)commandData.IsMuted;
+
+                        if(commandData.IsPCMuted != null)
+                            _isPcMuted = (bool)commandData.IsPCMuted;
+
+                        ResetState();
+                    }
+
+
                 }
 
                 /*
@@ -163,26 +204,6 @@ namespace S5CommunicationLibrary.S5
                             Log("Got data, processing", LogLevel.Debug);
                             currentState = State.Processing;
                             ProcessMessage_PresetData();    
-                        }
-                        break;
-                    // Request metering data
-                    case Commands.RequestMeters:
-                        // Meter data message is always 14 long
-                        if (currentBuffer.Count >= 14)
-                        {
-                            Log("Got data, processing", LogLevel.Debug);
-                            currentState = State.Processing;
-                            ProcessMessage_Metering();
-                        }
-                        break;
-                    // Request Full data
-                    case Commands.RequestFull:
-                        // Meter data message is always 14 long
-                        if (currentBuffer.Count >= 19)
-                        {
-                            Log("Got data, processing", LogLevel.Debug);
-                            currentState = State.Processing;
-                            ProcessMessage_Full();
                         }
                         break;
                 }
@@ -300,94 +321,7 @@ namespace S5CommunicationLibrary.S5
 
             ResetState();
         }
-
-        private void ProcessMessage_Full()
-        {
-            _debugData["ProcessMessage_Full"] = ByteArrayToString(currentBuffer.ToArray());
-
-            // 52 00 21 13 00 00 00 00 05 52 32 4B 55 73 65 72 31 37 61
-            //|   HDR  |FW|           |ML| FREQ   |     NAME        |CHK
-            // 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18
-
-            // Firmware version
-            _firmwareVersion = ByteToFirmwareVersion(currentBuffer[3]);
-
-            // Name - 12 -> 17
-            _name = System.Text.Encoding.ASCII.GetString(currentBuffer.GetRange(12, 6).ToArray());
-
-            // Mute Level - High 4 bits of byte
-            _muteLevel = currentBuffer[8] & 0x0F;
-            if(_muteLevel < 0)
-                _muteLevel = 0;
-
-            if(_muteLevel > 10)
-                _muteLevel = 10;
-
-            // Frequency - 9 -> 11
-            _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
-
-            ResetState();
-        }
-
         
-        private void ProcessMessage_Metering()
-        {
-            _debugData["ProcessMessage_Metering"] = ByteArrayToString(currentBuffer.ToArray());
-
-            // 52 00 44   a8     9d    77 0d   85    c0       53 04 00 13 57
-            //|   HDR  | RF A | RF B | AUDIO | BATT | FLAGS |   FREQ  |FW|
-            // 00 01 02   03     04    05 06   07    08       09 10 11 12 13
-
-            // RFA - 3
-            // RFB - 4
-            byte RFAdata = currentBuffer[3];
-            byte RFBdata = currentBuffer[4];
-            Log("A Data: " + (RFAdata - 60), LogLevel.Debug);
-            Log("B Data: " + (RFBdata - 60), LogLevel.Debug);
-            _rfA = (float)(RFAdata - 60) / 90.0f;
-            _rfB = (float)(RFBdata - 60) / 90.0f;
-
-            // AUDIO - 5 -> 6
-            Int16 vu = BitConverter.ToInt16(currentBuffer.ToArray(), 5);
-            Log("VU: " + (vu - 3000), LogLevel.Debug);
-            _audioLevel = (float)(vu - 3000) / (float)(Int16.MaxValue - 6000);
-
-            // BATT - 7 - Range: 20->80
-            byte BatteryData = currentBuffer[7];
-            Log("Battery Data: " + (BatteryData - 51), LogLevel.Debug);
-            _batteryLevel = (float)(BatteryData - 51) / 152.0f;
-
-
-
-
-            // FLAGS
-            // ---------
-            byte flagByte = currentBuffer[8];
-            _debugData["ProcessMessage_Metering_Flags"] = Convert.ToString(flagByte,2).PadLeft(8, '0');
-            // Bit 8 = Antenna
-            bool ant = (flagByte & (1 << 8 - 1)) != 0;
-            if (ant)
-                _currentAntenna = Antenna.A;
-            else
-                _currentAntenna = Antenna.B;
-
-            // Bit 6 = Mute
-            _isMuted = (flagByte & (1 << 6 - 1)) != 0;
-
-            // Bit 2 = PC Mute
-            _isPcMuted = (flagByte & (1 << 2 - 1)) != 0;
-
-            // Frequency - 9 -> 11
-            _frequency = UnpackFrequency(new[] {currentBuffer[9],currentBuffer[10],currentBuffer[11] });
-
-            // Firmware version - 12
-            _firmwareVersion = ByteToFirmwareVersion(currentBuffer[12]);
-            
-            // Signal that the metering was updated
-            MetersUpdated?.Invoke(this, new EventArgs());
-
-            ResetState();
-        }
 
         private void ProcessMessage_PresetData()
         {
@@ -687,21 +621,11 @@ namespace S5CommunicationLibrary.S5
             }
             */
             byte[] sendData = command.GetData();
-            int i = 0;
-            //serialPort.Write(sendData, 0, sendData.Length);
+            _debugData[command.GetType().Name + "_SEND"] = ByteArrayToString(sendData);
+            serialPort.Write(sendData, 0, sendData.Length);
+            currentState = State.AwaitingData;
 
             Log("State: " + currentState, LogLevel.Debug);
-        }
-
-        private enum Commands
-        {
-            None,
-            RequestMeters,
-            RequestFull,
-            RequestPresets,
-            SendPresets,
-            PcMuteOn,
-            PcMuteOff
         }
 
         private enum State
@@ -735,46 +659,6 @@ namespace S5CommunicationLibrary.S5
             Info,
             Error,
             Debug
-        }
-
-
-
-        private static decimal UnpackFrequency(byte[] data)
-        {
-            if(data is null)
-                return 0.0M;
-
-            if(data.Length != 3)
-                return 0.0M;
-
-            if(data.Length == 3)
-            {
-                // Unpack the frequency
-                int num1 = data[0]; // 82
-                int num2 = data[1]; // 50
-                int num3 = data[2]; // 75
-                                            // 825.075
-                // Do some string magic to get the decimal from this lot
-                string result = num1.ToString("00") + num2.ToString("00") + num3.ToString("00");
-                result = result.Substring(0, 3) + "." + result.Substring(3, 3);
-                return decimal.Parse(result);
-            }
-
-            return 0.0M;
-        }
-
-        private static decimal ByteToFirmwareVersion(byte data)
-        {
-            switch(data)
-            {
-                case 0x01:
-                    return 1.6M;
-                case 0x11:
-                case 0x13:
-                    return (decimal)data / 10;
-                default:
-                    return 0.0M;
-            }
         }
 
         private string ByteArrayToString(byte[] ba)

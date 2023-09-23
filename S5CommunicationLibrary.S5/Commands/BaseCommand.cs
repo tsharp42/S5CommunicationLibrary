@@ -1,12 +1,12 @@
 namespace S5CommunicationLibrary.S5.Commands
 {
 
-    public class BaseCommand
+    public abstract class BaseCommand
     {
         public int ExpectedDataLength{ get {return _expectedDataLength; }}
         protected int _expectedDataLength = 0;
-        public byte[] GetData() { return Array.Empty<byte>(); }
+        public abstract byte[] GetData();
 
-        public Dictionary<string, object> ProcessData() { return new Dictionary<string, object>(); }
+        public abstract Data.CommandReturnData? ProcessData(byte[] data);
     }
 }

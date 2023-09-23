@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <Folder Include="Commands/" />
+    <Folder Include="Commands/Data/" />
+    <Folder Include="Commands/EncodeDecode/" />
   </ItemGroup>
 
 </Project>
