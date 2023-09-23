@@ -21,4 +21,6 @@ public class CommandReturnData
     public bool? IsMuted = null;
     public bool? IsPCMuted = null;
 
+    public Receiver.Antenna? Antenna = null;
+
 }

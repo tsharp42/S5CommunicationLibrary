@@ -45,11 +45,11 @@ namespace S5CommunicationLibrary.S5.Commands
             // ---------
             byte flagByte = data[8];
             // Bit 8 = Antenna
-            //bool ant = (flagByte & (1 << 8 - 1)) != 0;
-            //if (ant)
-            //    _currentAntenna = Antenna.A;
-            //else
-            //    _currentAntenna = Antenna.B;
+            bool ant = (flagByte & (1 << 8 - 1)) != 0;
+            if (ant)
+                commandReturnData.Antenna = Receiver.Antenna.A;
+            else
+                commandReturnData.Antenna = Receiver.Antenna.B;
 
             // Bit 6 = Mute
             commandReturnData.IsMuted = (flagByte & (1 << 6 - 1)) != 0;

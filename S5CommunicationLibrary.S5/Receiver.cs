@@ -13,9 +13,7 @@ namespace S5CommunicationLibrary.S5
 {
     public class Receiver
     {
-        private static readonly byte[] Request_MeterData = new byte[] { 0x52, 0x00, 0x44 };
         private static readonly byte[] Request_PresetData = new byte[] { 0x52, 0x55 };
-        private static readonly byte[] Request_FullData = new byte[] { 0x52, 0x00, 0x3f };
 
         private SerialPort serialPort;
         public string PortName { get { return _portName; } }
@@ -151,7 +149,7 @@ namespace S5CommunicationLibrary.S5
                     _debugData[currentCommand.GetType().Name + "_PROCESS"] = ByteArrayToString(currentBuffer.ToArray());
                     currentState = State.Processing;
 
-                    S5CommunicationLibrary.S5.Commands.Data.CommandReturnData commandData = currentCommand.ProcessData(currentBuffer.ToArray());
+                    S5.Commands.Data.CommandReturnData commandData = currentCommand.ProcessData(currentBuffer.ToArray());
 
 
                     if(commandData != null)
@@ -185,6 +183,9 @@ namespace S5CommunicationLibrary.S5
 
                         if(commandData.IsPCMuted != null)
                             _isPcMuted = (bool)commandData.IsPCMuted;
+
+                        if(commandData.Antenna != null)
+                            _currentAntenna = (Antenna)commandData.Antenna;
 
                         ResetState();
                     }
