@@ -13,8 +13,8 @@ namespace S5CommunicationLibrary.S5.Commands
 
             muteLevel = MuteLevel;
 
-            if(muteLevel < 0)
-                muteLevel = 0;
+            if(muteLevel < 1)
+                muteLevel = 1;
 
             if(muteLevel > 10)
                 muteLevel = 10;

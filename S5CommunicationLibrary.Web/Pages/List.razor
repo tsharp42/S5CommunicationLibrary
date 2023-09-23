@@ -125,6 +125,9 @@
                             }else{
                                 <button class="btn btn-danger" @onclick="(e) => {rx.SetPcMute(true);}">Mute</button>
                             }
+
+                            <button class="btn btn-warning" @onclick="(e) => {rx.SetMuteLevel(rx.MuteLevel + 1);}">ML UP</button>
+                            <button class="btn btn-warning" @onclick="(e) => {rx.SetMuteLevel(rx.MuteLevel - 1);}">ML DOWN</button>
                         }
                     </td>
                 </tr>

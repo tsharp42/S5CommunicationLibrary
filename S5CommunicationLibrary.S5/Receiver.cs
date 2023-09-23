@@ -481,6 +481,15 @@ namespace S5CommunicationLibrary.S5
 #endif   
         }
 
+        public void SetMuteLevel(int muteLevel)
+        {
+#if RELEASE
+            Log("SetMuteLevel() is disabled", LogLevel.Info);
+#else
+            QueueCommand(new SetMuteCommand(muteLevel, _isPcMuted));      
+#endif   
+        }
+
         public void Stop()
         {
             if(_currentStatus == Status.Connected)
