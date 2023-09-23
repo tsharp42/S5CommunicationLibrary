@@ -151,6 +151,8 @@ namespace S5CommunicationLibrary.S5
 
                     if(commandData != null)
                     {
+                        bool metersUpdated = false;
+
                         if(commandData.FirmwareVersion != null)
                             _firmwareVersion = (decimal)commandData.FirmwareVersion;
 
@@ -164,16 +166,28 @@ namespace S5CommunicationLibrary.S5
                             _frequency = (decimal)commandData.Frequency;
 
                         if(commandData.RFA != null)
+                        {
                             _rfA = (float)commandData.RFA;
+                            metersUpdated = true;
+                        }
 
                         if(commandData.RFB != null)
+                        {
                             _rfB = (float)commandData.RFB;
+                            metersUpdated = true;
+                        }
 
                         if(commandData.AudioLevel != null)
+                        {
                             _audioLevel = (float)commandData.AudioLevel;
+                            metersUpdated = true;
+                        }
 
                         if(commandData.BatteryLevel != null)
+                        {
                             _batteryLevel = (float)commandData.BatteryLevel;
+                            metersUpdated = true;
+                        }
 
                         if(commandData.IsMuted != null)
                             _isMuted = (bool)commandData.IsMuted;
@@ -183,6 +197,9 @@ namespace S5CommunicationLibrary.S5
 
                         if(commandData.Antenna != null)
                             _currentAntenna = (Antenna)commandData.Antenna;
+
+                        if(metersUpdated)
+                            MetersUpdated?.Invoke(this, new EventArgs());
 
                         ResetState();
                     }
