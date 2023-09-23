@@ -138,9 +138,7 @@ namespace S5CommunicationLibrary.S5
             else
                 currentBuffer.AddRange(buf);
 
-            
-
-            // Begin colelcting data for the current command
+            // Begin collecting data for the current command
             if(currentState == State.AwaitingData)
             {
                 if(currentBuffer.Count >= currentCommand.ExpectedDataLength)
@@ -150,7 +148,6 @@ namespace S5CommunicationLibrary.S5
                     currentState = State.Processing;
 
                     S5.Commands.Data.CommandReturnData commandData = currentCommand.ProcessData(currentBuffer.ToArray());
-
 
                     if(commandData != null)
                     {
@@ -189,26 +186,7 @@ namespace S5CommunicationLibrary.S5
 
                         ResetState();
                     }
-
-
                 }
-
-                /*
-                // BAsed on which command is currently active
-                switch (currentCommand)
-                {
-                    // Request preset data - 0x44 0x00
-                    case Commands.RequestPresets:
-                        int totalLen = 404; // The RX always sends a full set of presets, 404 bytes in total.
-                        if (currentBuffer.Count >= totalLen)
-                        {
-                            Log("Got data, processing", LogLevel.Debug);
-                            currentState = State.Processing;
-                            ProcessMessage_PresetData();    
-                        }
-                        break;
-                }
-                */
             }
        
         }
@@ -268,57 +246,6 @@ namespace S5CommunicationLibrary.S5
 
             // Return to no handshake, doesn't appear to be required elsewhere
             serialPort.Handshake = Handshake.None;
-
-            ResetState();
-        }
-
-        private void SendMessage_PcMute(bool mute)
-        {
-            // 52 00 6d 00 00 00 06 00 00 00 00 00 00
-            //| HEADER |     ?  |ML|     ?     |PC| ?
-            // ML = Mute Level
-            // PC = PC Mute, 0x40 ON, 0x00 OFF
-
-            Log("Preparing to set PC Mute", LogLevel.Info);
-            Log("Mute Status: " + mute, LogLevel.Info);
-
-
-            List<byte> data = new List<byte>();
-
-            // Build header, 0x52 0x00 0x6d 0x00 0x00 0x00
-            data.AddRange(new byte[] { 0x52, 0x00, 0x6d, 0x00, 0x00, 0x00 });
-
-            // Add Mute Level
-            data.Add((byte)_muteLevel);
-
-            // Static 00 bytes
-            data.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x00  });
-
-            // PC Mute
-            if(mute)
-                data.Add(0x40);
-            else
-                data.Add(0x00);
-
-            // 0x00 end byte?
-            data.Add(0x00);
-
-            ////data = new List<byte>();
-            //data.AddRange(new byte[] { 0x52, 0x00, 0x6d, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  });
-
-
-            // Log the data sent
-            byte[] outData = data.ToArray();
-
-            // Check command validity before send
-            var validationResult = CommandValidator.IsCommandValid(outData);
-            if(validationResult.IsValid)
-            {
-                _debugData["SendMessage_PcMute"] = ByteArrayToString(outData) + " [VALID]";
-                serialPort.Write(outData, 0, outData.Length);
-            }else{
-                Log("SendMessage_PcMute() - Invalid Command Data ('"+validationResult.ValidationMessage+"')- " + ByteArrayToString(outData), LogLevel.Error) ;
-            }
 
             ResetState();
         }
@@ -499,36 +426,13 @@ namespace S5CommunicationLibrary.S5
                     
                 }
 
-                /*
-                // Are we waiting to send data?
-                if (currentState == State.AwaitingSend)
-                {
-                    switch (currentCommand)
-                    {
-                        case Commands.SendPresets:
-                            currentState = State.Sending;
-                            SendMessage_SendPresets();
-                            break;
-                        case Commands.PcMuteOn:
-                            currentState = State.Sending;
-                            SendMessage_PcMute(true);
-                            break;
-                        case Commands.PcMuteOff:
-                        currentState = State.Sending;
-                            SendMessage_PcMute(false);
-                            break;
-                    }
-                }
-                */
-
                 // Timeout commands that take longer than 1 second
                 if(DateTime.UtcNow - CommandStartedTime > TimeSpan.FromSeconds(1) && currentState != State.Idle){
                     Log("Timeout Occured!", LogLevel.Debug);
                     ResetState();
                 }
 
-                
-
+            
                 Thread.Sleep(250);
             }
         }
@@ -556,11 +460,7 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("SetPcMute() is disabled", LogLevel.Info);
 #else
-            /*if(mute)
-                QueueCommand(Commands.PcMuteOn);
-            else
-                QueueCommand(Commands.PcMuteOff);
-            */
+            QueueCommand(new SetMuteCommand(_muteLevel, mute));      
 #endif   
         }
 
@@ -597,34 +497,16 @@ namespace S5CommunicationLibrary.S5
 
             CommandStartedTime = DateTime.UtcNow;
 
-            /*
-            switch(command)
-            {
-                case Commands.RequestMeters:           
-                    serialPort.Write(Request_MeterData, 0, Request_MeterData.Length);
-                    currentState = State.AwaitingHeader;
-                    break;
-                case Commands.RequestFull:
-                    serialPort.Write(Request_FullData, 0, Request_FullData.Length);
-                    currentState = State.AwaitingHeader;
-                    break;
-                case Commands.RequestPresets:
-                    serialPort.Write(Request_PresetData, 0, Request_PresetData.Length);
-                    currentState = State.AwaitingHeader;
-                    break;
-                case Commands.SendPresets:
-                    currentState = State.AwaitingSend;
-                    break;
-                case Commands.PcMuteOn:
-                case Commands.PcMuteOff:
-                    currentState = State.AwaitingSend;
-                    break;
-            }
-            */
+            // Construct the command data and send it
             byte[] sendData = command.GetData();
             _debugData[command.GetType().Name + "_SEND"] = ByteArrayToString(sendData);
             serialPort.Write(sendData, 0, sendData.Length);
-            currentState = State.AwaitingData;
+
+            // Some commands expect data in return
+            if(command.ExpectedDataLength > 0)
+                currentState = State.AwaitingData;
+            else
+                ResetState();
 
             Log("State: " + currentState, LogLevel.Debug);
         }
@@ -632,14 +514,10 @@ namespace S5CommunicationLibrary.S5
         private enum State
         {
             MakingRequest,
-            AwaitingHeader,
             AwaitingData,
             Processing,
 
             Idle,
-
-            AwaitingSend,
-            Sending
         }
 
         public enum Antenna
