@@ -10,5 +10,9 @@
     <PackageReference Include="System.IO.Ports" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Commands/" />
+  </ItemGroup>
+
 </Project>
 

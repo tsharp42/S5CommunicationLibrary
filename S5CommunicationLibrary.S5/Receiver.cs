@@ -6,6 +6,8 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Configuration.Assemblies;
 using System.ComponentModel;
+using S5CommunicationLibrary.S5.Commands;
+using System.Windows.Input;
 
 namespace S5CommunicationLibrary.S5
 {
@@ -24,7 +26,7 @@ namespace S5CommunicationLibrary.S5
 
         private CancellationTokenSource cancellationToken;
 
-        private Queue<Commands> queuedCommands;
+        private Queue<BaseCommand> queuedCommands;
 
         public List<FrequencyPreset> Presets { get { return frequencyPresets; } }
         private List<FrequencyPreset> frequencyPresets;
@@ -70,7 +72,7 @@ namespace S5CommunicationLibrary.S5
 
         // Command Processing State
         private State currentState;
-        private Commands currentCommand;
+        private BaseCommand currentCommand;
         private List<byte> currentBuffer;
 
         // Timeouts
@@ -111,7 +113,7 @@ namespace S5CommunicationLibrary.S5
 
             frequencyPresets = new List<FrequencyPreset>();
 
-            queuedCommands = new Queue<Commands>();
+            queuedCommands = new Queue<BaseCommand>();
 
             CommandStartedTime = DateTime.UtcNow;
             LastFullDataRequest = DateTime.UtcNow;
@@ -138,53 +140,18 @@ namespace S5CommunicationLibrary.S5
             else
                 currentBuffer.AddRange(buf);
 
-            // Wait for header data
-            if (currentState == State.AwaitingHeader)
-            {
-                // BAsed on which command is currently active
-                switch (currentCommand)
-                {
-                    // Request preset data - 0x44 0x00
-                    case Commands.RequestPresets:
-                        if (currentBuffer.Count >= 3)
-                        {
-                            // Wait for 0x44, 0x00, LEN
-                            if (currentBuffer[0] == 0x44)
-                            {
-                                Log("Found header for: " + currentCommand, LogLevel.Debug);
-                                currentState = State.AwaitingData;
-                            }
-                        }
-                        break;
-                    case Commands.RequestMeters:
-                        if (currentBuffer.Count >= 3)
-                        {
-                            // Wait for 0x52, 0x00, 0x44
-                            if (currentBuffer[0] == 0x52 && currentBuffer[1] == 0x00 && currentBuffer[2] == 0x44)
-                            {
-                                Log("Found header for: " + currentCommand, LogLevel.Debug);
-                                currentState = State.AwaitingData;
-                            }
-                        }
-                        break;
-                    case Commands.RequestFull:
-                        if (currentBuffer.Count >= 3)
-                        {
-                            // Wait for 0x52, 0x00, 0x3F
-                            if (currentBuffer[0] == 0x52 && currentBuffer[1] == 0x00 && currentBuffer[2] == 0x21)
-                            {
-                                Log("Found header for: " + currentCommand, LogLevel.Debug);
-                                currentState = State.AwaitingData;
-                            }
-                        }
-                        break;
+            
 
-                }
-            }
-
-            // Header found so now move to collecting data
+            // Begin colelcting data for the current command
             if(currentState == State.AwaitingData)
             {
+                if(currentBuffer.Count >= currentCommand.ExpectedDataLength)
+                {
+                    Log("Got data, processing", LogLevel.Debug);
+                    currentState = State.Processing;
+                }
+
+                /*
                 // BAsed on which command is currently active
                 switch (currentCommand)
                 {
@@ -219,6 +186,7 @@ namespace S5CommunicationLibrary.S5
                         }
                         break;
                 }
+                */
             }
        
         }
@@ -545,7 +513,7 @@ namespace S5CommunicationLibrary.S5
                 _currentStatus = Status.Connecting;
 
                 serialPort.Open();
-                QueueCommand(Commands.RequestFull);
+                QueueCommand(new RequestFullDataCommand());
                 cancellationToken = new CancellationTokenSource();
                 new Task(() => PollingTask(), cancellationToken.Token, TaskCreationOptions.LongRunning).Start();
 
@@ -576,7 +544,7 @@ namespace S5CommunicationLibrary.S5
                 if (queuedCommands.Count > 0 && currentState == State.Idle) 
                 {
                     Log("Queue Count: " + queuedCommands.Count, LogLevel.Debug);
-                    Commands cmd = queuedCommands.Dequeue();
+                    BaseCommand cmd = queuedCommands.Dequeue();
                     Log("Next Command: " + cmd, LogLevel.Debug);
                     sendCommand(cmd);
                 }
@@ -586,16 +554,17 @@ namespace S5CommunicationLibrary.S5
                 {
                     if(DateTime.UtcNow - LastFullDataRequest > TimeSpan.FromSeconds(10))
                     {
-                        QueueCommand(Commands.RequestFull);
+                        QueueCommand(new RequestFullDataCommand());
                         LastFullDataRequest = DateTime.UtcNow;
                     }
                     else
                     {
-                        QueueCommand(Commands.RequestMeters);
+                        QueueCommand(new RequestMetersCommand());
                     }
                     
                 }
 
+                /*
                 // Are we waiting to send data?
                 if (currentState == State.AwaitingSend)
                 {
@@ -615,6 +584,7 @@ namespace S5CommunicationLibrary.S5
                             break;
                     }
                 }
+                */
 
                 // Timeout commands that take longer than 1 second
                 if(DateTime.UtcNow - CommandStartedTime > TimeSpan.FromSeconds(1) && currentState != State.Idle){
@@ -633,7 +603,7 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("SendPresets() is disabled", LogLevel.Info);
 #else
-            QueueCommand(Commands.SendPresets);
+            //QueueCommand(Commands.SendPresets);
 #endif
         }
 
@@ -642,7 +612,7 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("RequestPresets() is disabled", LogLevel.Info);
 #else
-            QueueCommand(Commands.RequestPresets);
+            //QueueCommand(Commands.RequestPresets);
 #endif            
         }
 
@@ -651,10 +621,11 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("SetPcMute() is disabled", LogLevel.Info);
 #else
-            if(mute)
+            /*if(mute)
                 QueueCommand(Commands.PcMuteOn);
             else
                 QueueCommand(Commands.PcMuteOff);
+            */
 #endif   
         }
 
@@ -671,13 +642,13 @@ namespace S5CommunicationLibrary.S5
             }
         }
 
-        private void QueueCommand(Commands command)
+        private void QueueCommand(BaseCommand command)
         {
             Log("Command added to Queue: " + command, LogLevel.Debug);
             queuedCommands.Enqueue(command);
         }
 
-        private void sendCommand(Commands command)
+        private void sendCommand(BaseCommand command)
         {
             // Must be idle to send a command
             if (currentState != State.Idle)
@@ -691,6 +662,7 @@ namespace S5CommunicationLibrary.S5
 
             CommandStartedTime = DateTime.UtcNow;
 
+            /*
             switch(command)
             {
                 case Commands.RequestMeters:           
@@ -713,6 +685,10 @@ namespace S5CommunicationLibrary.S5
                     currentState = State.AwaitingSend;
                     break;
             }
+            */
+            byte[] sendData = command.GetData();
+            int i = 0;
+            //serialPort.Write(sendData, 0, sendData.Length);
 
             Log("State: " + currentState, LogLevel.Debug);
         }
