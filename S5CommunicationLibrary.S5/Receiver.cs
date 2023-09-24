@@ -318,7 +318,8 @@ namespace S5CommunicationLibrary.S5
                 muteLevelSet = 1;
 
             //_muteLevel = muteLevelSet;   
-            QueueCommand(new SetMuteCommand(muteLevelSet, _isPcMuted));      
+            QueueCommand(new SetMuteCommand(muteLevelSet, _isPcMuted));
+            QueueCommand(new RequestFullDataCommand());      
         }
 
         public void Stop()
