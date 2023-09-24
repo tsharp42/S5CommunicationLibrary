@@ -85,3 +85,8 @@ a, .btn-link {
     text-align:center;
     vertical-align: middle;
 }
+
+pre.kv-data{
+    margin-bottom: 0;
+    font-size: 0.5rem;
+}

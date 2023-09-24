@@ -10,6 +10,9 @@ namespace S5CommunicationLibrary.S5.Commands
         public SetMuteCommand(int MuteLevel, bool PcMute)
         {
             _expectedDataLength = 0;
+            
+            // This command is not supported on 1.6
+            _supportedFirmwareVersions = new decimal[] {1.7M, 1.8M, 1.9M};
 
             muteLevel = MuteLevel;
 

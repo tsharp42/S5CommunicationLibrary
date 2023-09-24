@@ -61,6 +61,7 @@
                         <th>Port</th>
                         <th>Status</th>
                         <th>Firmware Version</th>
+                        <th>Frequency & Name</th>
                         <th>Mute Level</th>
                         <th>Action</th>
                     </tr>
@@ -74,6 +75,9 @@
                                 {
                                     @rx.FirmwareVersion;
                                 }
+                            </td>
+                            <td>
+                                @rx.Frequency - @rx.Name
                             </td>
                             <td>
                                 @rx.MuteLevel

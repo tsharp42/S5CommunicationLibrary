@@ -8,6 +8,7 @@ using System.Configuration.Assemblies;
 using System.ComponentModel;
 using S5CommunicationLibrary.S5.Commands;
 using System.Windows.Input;
+using System.Data.Common;
 
 namespace S5CommunicationLibrary.S5
 {
@@ -474,7 +475,7 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("SetPcMute() is disabled", LogLevel.Info);
 #else
-            _isPcMuted = mute;
+            //_isPcMuted = mute;
             QueueCommand(new SetMuteCommand(_muteLevel, mute)); 
 #endif   
         }
@@ -484,16 +485,16 @@ namespace S5CommunicationLibrary.S5
 #if RELEASE
             Log("SetMuteLevel() is disabled", LogLevel.Info);
 #else
-            int muteLevelSet = muteLevel;
 
+            // Bounds check for mute level
+            int muteLevelSet = muteLevel;
             if(muteLevelSet > 10)
                 muteLevelSet = 10;
 
             if(muteLevelSet < 1)
                 muteLevelSet = 1;
 
-            _muteLevel = muteLevelSet;
-            
+            //_muteLevel = muteLevelSet;   
             QueueCommand(new SetMuteCommand(muteLevelSet, _isPcMuted));      
 #endif   
         }
@@ -530,29 +531,48 @@ namespace S5CommunicationLibrary.S5
 
             CommandStartedTime = DateTime.UtcNow;
 
-            // Construct the command data and send it
-            byte[] sendData = command.GetData();
-            _debugData[command.GetType().Name + "_SEND"] = ByteArrayToString(sendData);
-
-            // Validate the data before sending
-            S5.Commands.Data.CommandValidationResult validationResult = command.ValidateCommandData(sendData);
-
-            if(validationResult.IsValid)
+            // Check this command is suppoort
+            if(CheckCommandFirmwareSupport(command))
             {
-                _debugData[command.GetType().Name + "_VALIDATION"] = "VALID";
-                serialPort.Write(sendData, 0, sendData.Length);
+                // Construct the command data and send it
+                byte[] sendData = command.GetData();
+                _debugData[command.GetType().Name + "_SEND"] = ByteArrayToString(sendData);
+
+                // Validate the data before sending
+                S5.Commands.Data.CommandValidationResult validationResult = command.ValidateCommandData(sendData);
+
+                if(validationResult.IsValid)
+                {
+                    _debugData[command.GetType().Name + "_VALIDATION"] = "VALID";
+                    serialPort.Write(sendData, 0, sendData.Length);
+                }else{
+                    _debugData[command.GetType().Name + "_VALIDATION"] = "INVALID - " + validationResult.ValidationMessage;
+                }
+
+    
+                // Some commands expect data in return
+                if(command.ExpectedDataLength > 0)
+                    currentState = State.AwaitingData;
+                else
+                    ResetState();
+
+                Log("State: " + currentState, LogLevel.Debug);
             }else{
-                _debugData[command.GetType().Name + "_VALIDATION"] = "INVALID - " + validationResult.ValidationMessage;
-            }
-
- 
-            // Some commands expect data in return
-            if(command.ExpectedDataLength > 0)
-                currentState = State.AwaitingData;
-            else
                 ResetState();
+            }
+        }
 
-            Log("State: " + currentState, LogLevel.Debug);
+        private bool CheckCommandFirmwareSupport(BaseCommand command)
+        {
+            if(!command.SupportedFirmwareVersion.Contains(_firmwareVersion))
+            {
+                _debugData[command.GetType().Name + "_FWSUPPORT"] = "NOT SUPPORTED";
+                Log(command.GetType().Name + " is not supported on firmware version: " + _firmwareVersion, LogLevel.Info);
+                return false;
+            }else{
+                _debugData[command.GetType().Name + "_FWSUPPORT"] = "SUPPORTED";
+                return true;
+            }
         }
 
         private enum State

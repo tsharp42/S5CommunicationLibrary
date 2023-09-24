@@ -23,8 +23,8 @@
                         @foreach(KeyValuePair<string, string> data in rx.DebugData)
                         {
                             <tr>
-                                <td><pre>@data.Key</pre></td>
-                                <td><pre>@data.Value</pre></td>
+                                <td><pre class="kv-data">@data.Key</pre></td>
+                                <td><pre class="kv-data">@data.Value</pre></td>
                             </tr>
                         }
                     </table>
