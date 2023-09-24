@@ -55,10 +55,10 @@ namespace S5CommunicationLibrary.S5
         public decimal Frequency { get { return _frequency; } }
         private decimal _frequency = 123.456M;
 
-        public int MuteLevel { get { return _muteLevel; } }
+        public int MuteLevel { get { return _muteLevel; } set { SetMuteLevel(value); }}
         private int _muteLevel = 0;
 
-        public bool IsPcMuted { get { return _isPcMuted; } }
+        public bool IsPcMuted { get { return _isPcMuted; } set { SetPcMute (value); }}
         private bool _isPcMuted = false;
 
         public Dictionary<string, string> DebugData { get { return _debugData; } }
@@ -379,7 +379,6 @@ namespace S5CommunicationLibrary.S5
 
         private void ResetState()
         {
-            Log("Resetting state...", LogLevel.Debug);
             currentState = State.Idle;
             currentBuffer.Clear();
         }
@@ -422,9 +421,7 @@ namespace S5CommunicationLibrary.S5
                 // If we are idle and there's a command to process, do it
                 if (queuedCommands.Count > 0 && currentState == State.Idle) 
                 {
-                    Log("Queue Count: " + queuedCommands.Count, LogLevel.Debug);
                     BaseCommand cmd = queuedCommands.Dequeue();
-                    Log("Next Command: " + cmd, LogLevel.Debug);
                     sendCommand(cmd);
                 }
                 
@@ -472,21 +469,32 @@ namespace S5CommunicationLibrary.S5
 #endif            
         }
 
-        public void SetPcMute(bool mute)
+        private void SetPcMute(bool mute)
         {
 #if RELEASE
             Log("SetPcMute() is disabled", LogLevel.Info);
 #else
-            QueueCommand(new SetMuteCommand(_muteLevel, mute));      
+            _isPcMuted = mute;
+            QueueCommand(new SetMuteCommand(_muteLevel, mute)); 
 #endif   
         }
 
-        public void SetMuteLevel(int muteLevel)
+        private void SetMuteLevel(int muteLevel)
         {
 #if RELEASE
             Log("SetMuteLevel() is disabled", LogLevel.Info);
 #else
-            QueueCommand(new SetMuteCommand(muteLevel, _isPcMuted));      
+            int muteLevelSet = muteLevel;
+
+            if(muteLevelSet > 10)
+                muteLevelSet = 10;
+
+            if(muteLevelSet < 1)
+                muteLevelSet = 1;
+
+            _muteLevel = muteLevelSet;
+            
+            QueueCommand(new SetMuteCommand(muteLevelSet, _isPcMuted));      
 #endif   
         }
 
@@ -505,7 +513,6 @@ namespace S5CommunicationLibrary.S5
 
         private void QueueCommand(BaseCommand command)
         {
-            Log("Command added to Queue: " + command, LogLevel.Debug);
             queuedCommands.Enqueue(command);
         }
 
@@ -519,7 +526,7 @@ namespace S5CommunicationLibrary.S5
             currentState = State.MakingRequest;
             currentCommand = command;
 
-            Log("Sending Command: " + command, LogLevel.Debug);
+            Log("Sending Command: " + command.GetType().Name, LogLevel.Debug);
 
             CommandStartedTime = DateTime.UtcNow;
 

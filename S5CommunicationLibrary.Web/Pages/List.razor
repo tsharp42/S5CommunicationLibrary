@@ -121,13 +121,13 @@
                         {
                             @if(rx.IsPcMuted)
                             {
-                                <button class="btn btn-danger" @onclick="(e) => {rx.SetPcMute(false);}">UnMute</button>
+                                <button class="btn btn-danger" @onclick="(e) => {rx.IsPcMuted = false;}">UnMute</button>
                             }else{
-                                <button class="btn btn-danger" @onclick="(e) => {rx.SetPcMute(true);}">Mute</button>
+                                <button class="btn btn-danger" @onclick="(e) => {rx.IsPcMuted = true;}">Mute</button>
                             }
 
-                            <button class="btn btn-warning" @onclick="(e) => {rx.SetMuteLevel(rx.MuteLevel + 1);}">ML UP</button>
-                            <button class="btn btn-warning" @onclick="(e) => {rx.SetMuteLevel(rx.MuteLevel - 1);}">ML DOWN</button>
+                            <button class="btn btn-warning" @onclick="(e) => {rx.MuteLevel++;}">ML UP</button>
+                            <button class="btn btn-warning" @onclick="(e) => {rx.MuteLevel--;}">ML DOWN</button>
                         }
                     </td>
                 </tr>
