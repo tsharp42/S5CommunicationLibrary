@@ -4,16 +4,16 @@
   * 57600, 8N1
 
 # Overview
-| Command                  | Implemented | Notes                           |
-|--------------------------|-------------|---------------------------------|
-| Request Metering         | 🟠          | 1 Unknown Byte                  |
-| Request Full Status      | 🟢          |                                 |
-| Request User Presets     | 🟢          |                                 |
-| Send User Presets        | 🟠          | Requires Testing                |
-| Set PcMute               | 🟢          | RX Firmware >V1.7?              |
-| Set Mute Level           | 🟢          |                                 |
-| Set Name                 | 🔴          |                                 |
-| Set Frequency            | 🔴          |                                 |
+| Command                  | Implemented | FW Support | Notes                           |
+|--------------------------|-------------|------------|---------------------------------|
+| Request Metering         | 🟠          |All         | 1 Unknown Byte                  |
+| Request Full Status      | 🟢          |All         |                                 |
+| Request User Presets     | 🟢          |            |                                 |
+| Send User Presets        | 🟠          |            | Requires Testing                |
+| Set PcMute               | 🟢          |>=1.7       |                                 |
+| Set Mute Level           | 🟢          |>=1.7       |                                 |
+| Set Name                 | 🔴          |            |                                 |
+| Set Frequency            | 🔴          |            |                                 |
 
 
  
