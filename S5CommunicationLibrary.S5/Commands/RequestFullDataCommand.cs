@@ -51,5 +51,16 @@ namespace S5CommunicationLibrary.S5.Commands
             
             return commandReturnData;  
         }
+
+        internal override Data.CommandValidationResult ValidateCommandData(byte[] data)
+        {
+            if(data.Length != 3)
+                return new Data.CommandValidationResult(false, "Incorrect length");
+
+            if(data[0] != 0x52 || data[1] != 0x00 || data[2] != 0x3F)
+                return new Data.CommandValidationResult(false, "Incorrect Data");
+
+            return new Data.CommandValidationResult(true, "");
+        }
     }
 }

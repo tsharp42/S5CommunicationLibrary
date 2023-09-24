@@ -533,8 +533,19 @@ namespace S5CommunicationLibrary.S5
             // Construct the command data and send it
             byte[] sendData = command.GetData();
             _debugData[command.GetType().Name + "_SEND"] = ByteArrayToString(sendData);
-            serialPort.Write(sendData, 0, sendData.Length);
 
+            // Validate the data before sending
+            S5.Commands.Data.CommandValidationResult validationResult = command.ValidateCommandData(sendData);
+
+            if(validationResult.IsValid)
+            {
+                _debugData[command.GetType().Name + "_VALIDATION"] = "VALID";
+                serialPort.Write(sendData, 0, sendData.Length);
+            }else{
+                _debugData[command.GetType().Name + "_VALIDATION"] = "INVALID - " + validationResult.ValidationMessage;
+            }
+
+ 
             // Some commands expect data in return
             if(command.ExpectedDataLength > 0)
                 currentState = State.AwaitingData;

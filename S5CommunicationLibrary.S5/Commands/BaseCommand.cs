@@ -8,5 +8,7 @@ namespace S5CommunicationLibrary.S5.Commands
         public abstract byte[] GetData();
 
         public abstract Data.CommandReturnData? ProcessData(byte[] data);
+
+        internal abstract Data.CommandValidationResult ValidateCommandData(byte[] data);
     }
 }
