@@ -10,4 +10,8 @@
     <ProjectReference Include="..\S5CommunicationLibrary.S5\S5CommunicationLibrary.S5.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot/js/" />
+  </ItemGroup>
+
 </Project>
