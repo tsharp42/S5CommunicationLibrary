@@ -12,7 +12,7 @@
 | Send User Presets        | 🟠          |            | Requires Testing                |
 | Set PcMute               | 🟢          |>=1.7       |                                 |
 | Set Mute Level           | 🟢          |>=1.7       |                                 |
-| Set Name                 | 🔴          |            |                                 |
+| Set Name                 | 🟢          |>=1.6       | Changes RX to "Single" Mode     |
 | Set Frequency            | 🔴          |            |                                 |
 
 

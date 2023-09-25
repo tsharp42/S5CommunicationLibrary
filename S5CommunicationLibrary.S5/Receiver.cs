@@ -30,7 +30,7 @@ namespace S5CommunicationLibrary.S5
         public List<FrequencyPreset> Presets { get { return frequencyPresets; } }
         private List<FrequencyPreset> frequencyPresets;
 
-        public string Name { get { return _name; } }
+        public string Name { get { return _name; } set { SetName(value); } }
         private string _name = "UNDEFI";
 
         public float RFA { get { return _rfA; } }
@@ -59,7 +59,7 @@ namespace S5CommunicationLibrary.S5
         public int MuteLevel { get { return _muteLevel; } set { SetMuteLevel(value); }}
         private int _muteLevel = 0;
 
-        public bool IsPcMuted { get { return _isPcMuted; } set { SetPcMute (value); }}
+        public bool IsPcMuted { get { return _isPcMuted; } set { SetPcMute(value); }}
         private bool _isPcMuted = false;
 
         public Dictionary<string, string> DebugData { get { return _debugData; } }
@@ -319,6 +319,12 @@ namespace S5CommunicationLibrary.S5
 
             //_muteLevel = muteLevelSet;   
             QueueCommand(new SetMuteCommand(muteLevelSet, _isPcMuted));
+            QueueCommand(new RequestFullDataCommand());      
+        }
+
+        private void SetName(string name)
+        {
+            QueueCommand(new SetNameCommand(_muteLevel, name));
             QueueCommand(new RequestFullDataCommand());      
         }
 
