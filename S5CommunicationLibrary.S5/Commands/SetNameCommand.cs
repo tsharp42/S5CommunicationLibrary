@@ -89,7 +89,7 @@ namespace S5CommunicationLibrary.S5.Commands
                 return new Data.CommandValidationResult(false, "Incorrect Header");
 
             // Chars 1, 2 and 3
-            for(int i = 3; i < 5; i++)
+            for(int i = 3; i <= 5; i++)
             {
                 if(data[i] < 0x20 || data[i] > 0x7E)
                     return new Data.CommandValidationResult(false, "Invalid character: " + (char)data[i]);
@@ -103,7 +103,7 @@ namespace S5CommunicationLibrary.S5.Commands
                 return new Data.CommandValidationResult(false, "Mute level > 0x0a");
 
             // Chars 4, 5 and 6
-            for(int i = 7; i < 9; i++)
+            for(int i = 7; i <= 9; i++)
             {
                 if(data[i] < 0x20 || data[i] > 0x7E)
                     return new Data.CommandValidationResult(false, "Invalid character: " + (char)data[i]);
