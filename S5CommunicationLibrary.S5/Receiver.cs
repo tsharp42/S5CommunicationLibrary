@@ -142,14 +142,16 @@ namespace S5CommunicationLibrary.S5
             // Begin collecting data for the current command
             if(currentState == State.AwaitingData)
             {
+                // Once the buffer contains enough data for this command, pass it to the command
                 if(currentBuffer.Count >= currentCommand.ExpectedDataLength)
                 {
-                    Log("Got data, processing", LogLevel.Debug);
                     _debugData[currentCommand.GetType().Name + "_PROCESS"] = ByteArrayToString(currentBuffer.ToArray());
                     currentState = State.Processing;
 
+                    // Process the receive buffer
                     S5.Commands.Data.CommandReturnData commandData = currentCommand.ProcessData(currentBuffer.ToArray());
 
+                    // Apply any updates
                     if(commandData != null)
                     {
                         bool metersUpdated = false;
@@ -254,7 +256,7 @@ namespace S5CommunicationLibrary.S5
                 if (queuedCommands.Count > 0 && currentState == State.Idle) 
                 {
                     BaseCommand cmd = queuedCommands.Dequeue();
-                    sendCommand(cmd);
+                    SendCommand(cmd);
                 }
                 
                 // No commands left, idle, poll for meters. And periodically the full data.
@@ -346,21 +348,20 @@ namespace S5CommunicationLibrary.S5
             queuedCommands.Enqueue(command);
         }
 
-        private void sendCommand(BaseCommand command)
+        private void SendCommand(BaseCommand command)
         {
             // Must be idle to send a command
             if (currentState != State.Idle)
                 return;
 
+            // Clear the receive buffer
             currentBuffer.Clear();
             currentState = State.MakingRequest;
             currentCommand = command;
 
-            Log("Sending Command: " + command.GetType().Name, LogLevel.Debug);
-
             CommandStartedTime = DateTime.UtcNow;
 
-            // Check this command is suppoort
+            // Check this command is supported
             if(CheckCommandFirmwareSupport(command))
             {
                 // Construct the command data and send it
@@ -369,7 +370,6 @@ namespace S5CommunicationLibrary.S5
 
                 // Validate the data before sending
                 S5.Commands.Data.CommandValidationResult validationResult = command.ValidateCommandData(sendData);
-
                 if(validationResult.IsValid)
                 {
                     _debugData[command.GetType().Name + "_VALIDATION"] = "VALID";
@@ -378,14 +378,12 @@ namespace S5CommunicationLibrary.S5
                     _debugData[command.GetType().Name + "_VALIDATION"] = "INVALID - " + validationResult.ValidationMessage;
                 }
 
-    
                 // Some commands expect data in return
                 if(command.ExpectedDataLength > 0)
                     currentState = State.AwaitingData;
                 else
                     ResetState();
 
-                Log("State: " + currentState, LogLevel.Debug);
             }else{
                 ResetState();
             }
