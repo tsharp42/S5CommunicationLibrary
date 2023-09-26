@@ -53,7 +53,7 @@ namespace S5CommunicationLibrary.S5
         public float AudioLevel { get { return _audioLevel; } }
         private float _audioLevel = 0.0f;
 
-        public decimal Frequency { get { return _frequency; } }
+        public decimal Frequency { get { return _frequency; } set {SetFrequency(value); } }
         private decimal _frequency = 123.456M;
 
         public int MuteLevel { get { return _muteLevel; } set { SetMuteLevel(value); }}
@@ -328,6 +328,12 @@ namespace S5CommunicationLibrary.S5
         {
             QueueCommand(new SetNameCommand(_muteLevel, name));
             QueueCommand(new RequestFullDataCommand());      
+        }
+
+        private void SetFrequency(decimal frequency)
+        {
+            QueueCommand(new SetFrequencyCommand(frequency, _muteLevel));
+            QueueCommand(new RequestFullDataCommand());    
         }
 
         public void Stop()

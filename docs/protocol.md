@@ -13,7 +13,7 @@
 | Set PcMute               | 🟢          |>=1.7       |                                 |
 | Set Mute Level           | 🟢          |>=1.7       |                                 |
 | Set Name                 | 🟢          |>=1.6       | Changes RX to "Single" Mode     |
-| Set Frequency            | 🔴          |            |                                 |
+| Set Frequency            | 🟢          |>=1.6       | Changes RX to "Single" Mode     |
 
 
  
